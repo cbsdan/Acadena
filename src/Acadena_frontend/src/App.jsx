@@ -19,7 +19,8 @@ import {
   InvitationCodeClaim,
   Dashboard,
   StudentRegistration,
-  DocumentManagement
+  DocumentManagement,
+  LandingPage
 } from './components';
 
 function App() {
@@ -35,9 +36,11 @@ function App() {
     handleLogout
   } = useAuth();
 
+  // Add showLandingPage state - this will control whether to show landing page or app
+  const [showLandingPage, setShowLandingPage] = useState(true);
   const [currentView, setCurrentView] = useState('login');
 
-  // Data state
+  // ...existing code for data state and form states...
   const {
     institutions,
     setInstitutions,
@@ -52,7 +55,6 @@ function App() {
     loadMyInvitationCodes
   } = useData(user, isAuthenticated);
 
-  // Form states
   const [institutionWithAdminForm, setInstitutionWithAdminForm] = useState({
     name: '',
     institutionType: 'University',
@@ -89,6 +91,16 @@ function App() {
 
   const [invitationCodeInfo, setInvitationCodeInfo] = useState(null);
 
+  // Function to navigate from landing page to app
+  const enterApp = () => {
+    setShowLandingPage(false);
+  };
+
+  // If showing landing page, render only that
+  if (showLandingPage) {
+    return <LandingPage onEnterApp={enterApp} />;
+  }
+
   // Enhanced handlers with navigation
   const handleLoginWithNav = async () => {
     try {
@@ -102,12 +114,13 @@ function App() {
   const handleLogoutWithNav = () => {
     handleLogout();
     setCurrentView('login');
+    setShowLandingPage(true); // Go back to landing page on logout
     // Clear form data on logout
     setStudents([]);
     setDocuments([]);
   };
 
-  // Wrapper functions for handlers
+  // ...rest of your existing handler functions...
   const handleInstitutionWithAdminSubmit = (e) => {
     return institutionHandlers.handleInstitutionWithAdminSubmit(
       e,
@@ -162,8 +175,6 @@ function App() {
     );
   };
 
-  // Render Functions - moved to separate components
-
   const getNavItems = () => {
     const items = [{ key: 'dashboard', label: 'Dashboard' }];
     
@@ -177,6 +188,7 @@ function App() {
     return items;
   };
 
+  // ...rest of your existing render logic...
   if (!isAuthenticated) {
     return (
       <div className="app">

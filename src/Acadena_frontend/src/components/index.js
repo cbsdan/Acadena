@@ -7,3 +7,4 @@ export { default as InvitationCodeClaim } from './InvitationCodeClaim';
 export { default as Dashboard } from './Dashboard';
 export { default as StudentRegistration } from './StudentRegistration';
 export { default as DocumentManagement } from './DocumentManagement';
+export { default as LandingPage } from './LandingPage';
