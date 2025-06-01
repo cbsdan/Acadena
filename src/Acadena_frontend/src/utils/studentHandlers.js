@@ -16,7 +16,7 @@ export const studentHandlers = {
     
     try {
       const result = await Acadena_backend.createStudentWithInvitationCode(
-        user.role.InstitutionAdmin[0],
+        user.role.InstitutionAdmin,
         studentForm.firstName,
         studentForm.lastName,
         studentForm.email,
