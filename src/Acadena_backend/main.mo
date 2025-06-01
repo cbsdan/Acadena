@@ -3,6 +3,7 @@ import Text "mo:base/Text";
 import Result "mo:base/Result";
 import Principal "mo:base/Principal";
 import Nat "mo:base/Nat";
+import Array "mo:base/Array";
 
 // Import our modules
 import Types "./modules/Types";
@@ -12,6 +13,7 @@ import Students "./modules/Students";
 import Documents "./modules/Documents";
 import Invitations "./modules/Invitations";
 import Utils "./modules/Utils";
+import InstitutionsData "./modules/InstitutionsData";
 
 actor Acadena {
   
@@ -34,7 +36,10 @@ actor Acadena {
   public type InvitationCode = Types.InvitationCode;
   public type Error = Types.Error;
   public type SystemStatus = Types.SystemStatus;
-  
+
+  // Expose the Institution type from InstitutionsData for CHED institutions
+  public type CHEDInstitution = InstitutionsData.Institution;
+
   // Storage - ID counters
   private stable var nextInstitutionId : Nat = 1;
   private stable var nextStudentId : Nat = 1;
@@ -51,7 +56,19 @@ actor Acadena {
   private var users = Map.HashMap<UserId, User>(1000, Text.equal, Text.hash);
   private var principalToUser = Map.HashMap<Principal, UserId>(1000, Principal.equal, Principal.hash);
   private var invitationCodes = Map.HashMap<Text, InvitationCode>(1000, Text.equal, Text.hash);
-  
+
+  // ===== CHED CSV Institutions Storage =====
+  stable var chedInstitutions : [CHEDInstitution] = [];
+
+  // ===== CHED CSV Institutions Functions =====
+  public shared func addCHEDInstitution(inst : CHEDInstitution) : async () {
+    chedInstitutions := Array.append<CHEDInstitution>(chedInstitutions, [inst]);
+  };
+
+  public query func getCHEDInstitutions() : async [CHEDInstitution] {
+    chedInstitutions
+  };
+
   // Helper functions for ID management
   private func getNextInstitutionId() : Nat { nextInstitutionId };
   private func incrementInstitutionId() : () { nextInstitutionId += 1 };

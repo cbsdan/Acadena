@@ -4,7 +4,7 @@ import logoImage from './assets/images/logo.png';
 import landingPageImage from './assets/images/landingpage.png';
 import aboutImage from './assets/images/about.png';
 
-const LandingPage = ({ onEnterApp }) => {
+const LandingPage = ({ onEnterApp, onShowInstitutions }) => {
   useEffect(() => {
     const observerOptions = {
       threshold: 0.1,
@@ -40,6 +40,11 @@ const LandingPage = ({ onEnterApp }) => {
             <li><a href="#about" className="nav-link">About</a></li>
             <li><a href="#guide" className="nav-link">Guide</a></li>
             <li><a href="#contact" className="nav-link">Contact</a></li>
+            <li>
+              <button className="nav-link" onClick={onShowInstitutions} style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer' }}>
+                Institutions
+              </button>
+            </li>
           </ul>
         </div>
         
@@ -112,7 +117,7 @@ const LandingPage = ({ onEnterApp }) => {
               <h3 className="feature-title">Manage and Verify Records</h3>
               <p className="feature-description">
                 Register students, issue and validate documents securely.
-                </p>
+              </p>
               <div className="feature-glow"></div>
             </div>
 

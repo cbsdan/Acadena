@@ -20,7 +20,8 @@ import {
   Dashboard,
   StudentRegistration,
   DocumentManagement,
-  LandingPage
+  LandingPage,
+  Institutions,
 } from './components';
 
 function App() {
@@ -36,8 +37,9 @@ function App() {
     handleLogout
   } = useAuth();
 
-  // Add showLandingPage state - this will control whether to show landing page or app
+  // Add showLandingPage and showInstitutions state
   const [showLandingPage, setShowLandingPage] = useState(true);
+  const [showInstitutions, setShowInstitutions] = useState(false);
   const [currentView, setCurrentView] = useState('login');
 
   // ...existing code for data state and form states...
@@ -94,11 +96,28 @@ function App() {
   // Function to navigate from landing page to app
   const enterApp = () => {
     setShowLandingPage(false);
+    setShowInstitutions(false);
   };
+
+  // Function to show Institutions page
+  const showInstitutionsPage = () => {
+    setShowLandingPage(false);
+    setShowInstitutions(true);
+  };
+
+  // If showing Institutions page, render only that
+  if (showInstitutions) {
+    return <Institutions />;
+  }
 
   // If showing landing page, render only that
   if (showLandingPage) {
-    return <LandingPage onEnterApp={enterApp} />;
+    return (
+      <LandingPage
+        onEnterApp={enterApp}
+        onShowInstitutions={showInstitutionsPage}
+      />
+    );
   }
 
   // Enhanced handlers with navigation
@@ -115,7 +134,9 @@ function App() {
     handleLogout();
     setCurrentView('login');
     setShowLandingPage(true); // Go back to landing page on logout
+    setShowInstitutions(false);
     // Clear form data on logout
+    setInstitutions([]);
     setStudents([]);
     setDocuments([]);
   };
