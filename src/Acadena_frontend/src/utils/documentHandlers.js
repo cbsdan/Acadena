@@ -17,7 +17,7 @@ export const documentHandlers = {
       
       const result = await Acadena_backend.issueDocument(
         documentForm.studentId,
-        user.role.InstitutionAdmin[0],
+        user.role.InstitutionAdmin,
         documentType,
         documentForm.title,
         documentForm.content

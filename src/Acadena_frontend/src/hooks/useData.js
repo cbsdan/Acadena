@@ -30,7 +30,7 @@ export const useData = (user, isAuthenticated) => {
     if (!user || !user.role.InstitutionAdmin) return;
     
     try {
-      const result = await Acadena_backend.getStudentsByInstitution(user.role.InstitutionAdmin[0]);
+      const result = await Acadena_backend.getStudentsByInstitution(user.role.InstitutionAdmin);
       if ('ok' in result) {
         setStudents(result.ok);
       }
