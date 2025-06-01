@@ -65,8 +65,7 @@ const LandingPage = ({ onEnterApp }) => {
           <p className="description">
             Experience the future of education with blockchain-powered security
             and seamless academic record management.
-          </p>
-          <div className="cta-buttons">
+          </p>          <div className="cta-buttons">
             <button className="try-today-button primary" onClick={onEnterApp}>
               <span>Try Today</span>
               <div className="button-shine"></div>

@@ -24,11 +24,12 @@ module Students {
     institutions: Map.HashMap<InstitutionId, Institution>,
     nextStudentId: () -> Nat,
     incrementStudentId: () -> (),
-    registerUser: (Text, Text, Text, UserRole) -> async Result.Result<User, Error>,
+    registerUser: (Principal, Text, Text, Text, UserRole) -> async Result.Result<User, Error>,
     generateInvitationCode: (StudentId, InstitutionId, UserId) -> Result.Result<Text, Error>
   ) {
     
     public func registerStudentWithUser(
+      caller: Principal,
       institutionId: InstitutionId,
       firstName: Text,
       lastName: Text,
@@ -37,9 +38,6 @@ module Students {
       program: Text,
       yearLevel: Nat
     ) : async Result.Result<(Student, User), Error> {
-      // TODO: Implement proper authentication when msg.caller is available
-      // For now, bypass authentication to allow testing
-      let _caller = Principal.fromText("2vxsx-fae");
       
       // Validate institution exists
       switch (institutions.get(institutionId)) {
@@ -57,7 +55,7 @@ module Students {
       
       // Create student user account
       let studentRole = #Student(studentId);
-      let studentUserResult = await registerUser(email, firstName, lastName, studentRole);
+      let studentUserResult = await registerUser(caller, email, firstName, lastName, studentRole);
       
       let studentUser = switch (studentUserResult) {
         case (#ok(user)) { user };
@@ -189,10 +187,24 @@ module Students {
       #ok(filteredStudents)
     };
     
-    public func getMyStudentInfo() : async Result.Result<Student, Error> {
-      // TODO: Implement proper authentication when msg.caller is available
-      // For now, return a default error since we can't identify the student
-      #err(#Unauthorized)
+    public func getMyStudentInfo(_caller: Principal) : async Result.Result<Student, Error> {
+      // Find the student by their principal/caller
+      let studentsArray = Iter.toArray(students.entries());
+      
+      // Look for a student whose associated user has this principal
+      for ((studentId, student) in Iter.fromArray(studentsArray)) {
+        switch (student.userId) {
+          case (?_userId) {
+            // Check if this user ID corresponds to the caller
+            // Note: This would require a way to look up users by principal
+            // For now, we'll need to implement this in the main.mo file
+            // where we have access to the user service
+          };
+          case null {};
+        };
+      };
+      
+      #err(#NotFound)
     };
   }
 }

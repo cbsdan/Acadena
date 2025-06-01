@@ -1,4 +1,6 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
+import { institutionHandlers } from '../utils/institutionHandlers';
+import InternetIdentityCreation from './InternetIdentityCreation';
 import instiRegisterImage from './assets/images/instiregister.png';
 import './assets/styles/style.css';
 
@@ -8,7 +10,147 @@ const InstitutionRegistration = ({
   handleInstitutionWithAdminSubmit, 
   loading, 
   setCurrentView 
-}) => (
+}) => {
+  const [accreditationValidation, setAccreditationValidation] = useState({
+    isChecking: false,
+    isDuplicate: false,
+    hasChecked: false
+  });
+  
+  const [showInternetIdentityModal, setShowInternetIdentityModal] = useState(false);
+  const [formValidated, setFormValidated] = useState(false);
+
+  // Debounced validation for accreditation number
+  const validateAccreditationNumber = useCallback(
+    async (accreditationNumber) => {
+      if (!accreditationNumber.trim()) {
+        setAccreditationValidation({
+          isChecking: false,
+          isDuplicate: false,
+          hasChecked: false
+        });
+        return;
+      }
+
+      setAccreditationValidation(prev => ({ ...prev, isChecking: true }));
+      
+      try {
+        const isDuplicate = await institutionHandlers.checkAccreditationNumberExists(accreditationNumber);
+        setAccreditationValidation({
+          isChecking: false,
+          isDuplicate,
+          hasChecked: true
+        });
+      } catch (error) {
+        console.error('Error validating accreditation number:', error);
+        setAccreditationValidation({
+          isChecking: false,
+          isDuplicate: false,
+          hasChecked: false
+        });
+      }
+    },
+    []
+  );
+
+  // Handle accreditation number change with validation
+  const handleAccreditationNumberChange = (e) => {
+    const value = e.target.value;
+    setInstitutionWithAdminForm({
+      ...institutionWithAdminForm, 
+      accreditationNumber: value
+    });
+
+    // Debounce validation (wait 500ms after user stops typing)
+    const timeoutId = setTimeout(() => {
+      validateAccreditationNumber(value);
+    }, 500);
+
+    // Clear previous timeout
+    return () => clearTimeout(timeoutId);
+  };
+
+  // Validate form before showing Internet Identity modal
+  const validateForm = () => {
+    const requiredFields = [
+      'name', 'institutionType', 'address', 'contactEmail', 
+      'contactPhone', 'accreditationNumber', 'adminFirstName', 
+      'adminLastName', 'adminEmail'
+    ];
+    
+    for (const field of requiredFields) {
+      if (!institutionWithAdminForm[field] || institutionWithAdminForm[field].trim() === '') {
+        alert(`Please fill in the ${field.replace(/([A-Z])/g, ' $1').toLowerCase()} field.`);
+        return false;
+      }
+    }
+    
+    if (accreditationValidation.isDuplicate) {
+      alert('Please use a different accreditation number as this one already exists.');
+      return false;
+    }
+    
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(institutionWithAdminForm.contactEmail)) {
+      alert('Please enter a valid contact email address.');
+      return false;
+    }
+    if (!emailRegex.test(institutionWithAdminForm.adminEmail)) {
+      alert('Please enter a valid admin email address.');
+      return false;
+    }
+    
+    return true;
+  };
+
+  // Handle form submission - show Internet Identity modal first
+  const handleFormSubmit = (e) => {
+    e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+    
+    // Show confirmation message about the flow
+    const confirmed = confirm(
+      `Ready to register your institution!\n\n` +
+      `Next steps:\n` +
+      `1. Create your Internet Identity (secure authentication)\n` +
+      `2. Register "${institutionWithAdminForm.name}" with admin account for ${institutionWithAdminForm.adminFirstName} ${institutionWithAdminForm.adminLastName}\n\n` +
+      `Click OK to continue or Cancel to review your information.`
+    );
+    
+    if (!confirmed) {
+      return;
+    }
+    
+    setFormValidated(true);
+    setShowInternetIdentityModal(true);
+  };
+
+  // Handle successful Internet Identity creation - simplified flow
+  const handleInternetIdentitySuccess = () => {
+    // In the simplified flow, this is handled by App.jsx when user returns
+    // from Internet Identity registration. Just close the modal here.
+    setShowInternetIdentityModal(false);
+  };
+
+  // Handle Internet Identity creation cancellation
+  const handleInternetIdentityCancel = () => {
+    setShowInternetIdentityModal(false);
+    setFormValidated(false);
+  };
+
+  // Handle Internet Identity creation error
+  const handleInternetIdentityError = (error) => {
+    setShowInternetIdentityModal(false);
+    setFormValidated(false);
+    console.error('Internet Identity creation error:', error);
+    alert('Failed to create Internet Identity: ' + error.message);
+  };
+
+  return (
   <div className="registration-page">
     <div className="registration-left">
       <div className="registration-left-content">
@@ -50,10 +192,10 @@ const InstitutionRegistration = ({
       <div className="registration-form-container">
         <div className="form-header">
           <h1 className="form-title">Register Institution</h1>
-          <p className="form-subtitle">Create your institution profile and admin account</p>
+          <p className="form-subtitle">Fill out the form below to create your Internet Identity and register your institution</p>
         </div>
 
-        <form onSubmit={handleInstitutionWithAdminSubmit} className="registration-form">
+        <form onSubmit={handleFormSubmit} className="registration-form">
           {/* Institution Details Section */}
           <div className="form-section">
             <h3 className="section-title">
@@ -136,15 +278,49 @@ const InstitutionRegistration = ({
 
             <div className="form-group">
               <label htmlFor="accreditationNumber" className="form-label">Accreditation Number *</label>
-              <input
-                type="text"
-                id="accreditationNumber"
-                className="form-input"
-                value={institutionWithAdminForm.accreditationNumber}
-                onChange={(e) => setInstitutionWithAdminForm({...institutionWithAdminForm, accreditationNumber: e.target.value})}
-                required
-                placeholder="Enter accreditation number"
-              />
+              <div className="input-container">
+                <input
+                  type="text"
+                  id="accreditationNumber"
+                  className={`form-input ${
+                    accreditationValidation.hasChecked 
+                      ? accreditationValidation.isDuplicate 
+                        ? 'error' 
+                        : 'success'
+                      : ''
+                  }`}
+                  value={institutionWithAdminForm.accreditationNumber}
+                  onChange={handleAccreditationNumberChange}
+                  required
+                  placeholder="Enter accreditation number"
+                />
+                {accreditationValidation.isChecking && (
+                  <div className="validation-indicator checking">
+                    <div className="spinner-small"></div>
+                    <span>Checking...</span>
+                  </div>
+                )}
+                {accreditationValidation.hasChecked && !accreditationValidation.isChecking && (
+                  <div className={`validation-indicator ${accreditationValidation.isDuplicate ? 'error' : 'success'}`}>
+                    {accreditationValidation.isDuplicate ? (
+                      <>
+                        <span className="validation-icon">❌</span>
+                        <span>Already exists</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="validation-icon">✅</span>
+                        <span>Available</span>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+              {accreditationValidation.isDuplicate && (
+                <div className="error-message">
+                  This accreditation number is already registered. Please use a different number.
+                </div>
+              )}
             </div>
 
             <div className="form-row">
@@ -224,7 +400,19 @@ const InstitutionRegistration = ({
           </div>
 
           <div className="form-actions">
-            <button type="submit" disabled={loading} className="primary-button submit-btn">
+            <div className="ii-info-notice">
+              <div className="ii-info-icon">🔐</div>
+              <div className="ii-info-text">
+                <strong>Secure Registration Process</strong><br />
+                We'll create your Internet Identity first (secure, private authentication), then register your institution.
+              </div>
+            </div>
+            
+            <button 
+              type="submit" 
+              disabled={loading || accreditationValidation.isDuplicate} 
+              className="primary-button submit-btn"
+            >
               <span className="button-content">
                 {loading ? (
                   <>
@@ -236,7 +424,7 @@ const InstitutionRegistration = ({
                     <svg className="button-icon" viewBox="0 0 24 24" fill="none">
                       <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
-                    Create Institution & Admin
+                    Create Internet Identity & Register Institution
                   </>
                 )}
               </span>
@@ -253,7 +441,19 @@ const InstitutionRegistration = ({
         </form>
       </div>
     </div>
+    
+    {/* Internet Identity Creation Modal */}
+    {showInternetIdentityModal && (
+      <InternetIdentityCreation
+        onSuccess={handleInternetIdentitySuccess}
+        onCancel={handleInternetIdentityCancel}
+        onError={handleInternetIdentityError}
+        displayName={`${institutionWithAdminForm.adminFirstName} ${institutionWithAdminForm.adminLastName}`}
+        formData={institutionWithAdminForm}
+      />
+    )}
   </div>
 );
+};
 
 export default InstitutionRegistration;

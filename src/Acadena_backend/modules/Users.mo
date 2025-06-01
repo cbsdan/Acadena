@@ -23,14 +23,13 @@ module Users {
   ) {
     
     public func registerUser(
+      caller: Principal,
       email: Text,
       firstName: Text,
       lastName: Text,
       role: UserRole
     ) : async Result.Result<User, Error> {
-      // TODO: Implement proper authentication when msg.caller is available
-      // For now, use a temporary principal to bypass authentication
-      let caller = Principal.fromText("2vxsx-fae");
+      // Use the actual caller principal from Internet Identity
       
       // Check if user already exists
       switch (principalToUser.get(caller)) {
@@ -64,33 +63,35 @@ module Users {
       #ok(user)
     };
     
-    public func getCurrentUserInfo() : async ?User {
-      // TODO: Implement proper authentication when msg.caller is available
-      // For now, use a temporary principal to bypass authentication
-      let caller = Principal.fromText("2vxsx-fae");
+    public func getCurrentUserInfo(caller: Principal) : async ?User {
+      // Use the actual caller principal from Internet Identity
       switch (principalToUser.get(caller)) {
         case (?userId) { users.get(userId) };
         case null { null };
       }
     };
     
-    public func getAllUsers() : async Result.Result<[User], Error> {
-      // TODO: Implement proper authentication when msg.caller is available
-      // For now, bypass authentication to allow testing
-      let _caller = Principal.fromText("2vxsx-fae");
-      
-      // Skip authentication for now
-      // Check authentication and authorization
-      // let authResult = requireAuth(caller);
-      // let auth = switch (authResult) {
-      //   case (#ok(a)) { a };
-      //   case (#err(e)) { return #err(e) };
-      // };
-      
-      // For now, return all users without authorization check
-      let usersArray = Iter.toArray(users.entries());
-      let allUsers = Array.map<(UserId, User), User>(usersArray, func((_, user)) = user);
-      #ok(allUsers)
+    public func getAllUsers(caller: Principal) : async Result.Result<[User], Error> {
+      // Check authentication and authorization - only system admins can view all users
+      switch (principalToUser.get(caller)) {
+        case (?userId) {
+          switch (users.get(userId)) {
+            case (?user) {
+              switch (user.role) {
+                case (#SystemAdmin) {
+                  // System admin can view all users
+                  let usersArray = Iter.toArray(users.entries());
+                  let allUsers = Array.map<(UserId, User), User>(usersArray, func((_, user)) = user);
+                  #ok(allUsers)
+                };
+                case (_) { #err(#Unauthorized) };
+              }
+            };
+            case null { #err(#Unauthorized) };
+          }
+        };
+        case null { #err(#Unauthorized) };
+      }
     };
   }
 }

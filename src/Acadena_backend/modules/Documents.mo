@@ -34,16 +34,13 @@ module Documents {
   ) {
     
     public func issueDocument(
+      _caller: Principal,
       studentId: StudentId,
       issuingInstitutionId: InstitutionId,
       documentType: DocumentType,
       title: Text,
       content: Text
     ) : async Result.Result<Document, Error> {
-      
-      // TODO: Implement proper authentication when msg.caller is available
-      // For now, bypass authentication to allow testing
-      let _caller = Principal.fromText("2vxsx-fae");
       
       // Validate student and institution exist
       switch (students.get(studentId), institutions.get(issuingInstitutionId)) {
@@ -105,26 +102,16 @@ module Documents {
       }
     };
     
-    public func getMyDocuments() : async Result.Result<[Document], Error> {
-      // TODO: Implement proper authentication when msg.caller is available
-      // For now, bypass authentication to allow testing
-      let _caller = Principal.fromText("2vxsx-fae");
-      
-      // For now, return empty array since we can't identify the user
+    public func getMyDocuments(_caller: Principal) : async Result.Result<[Document], Error> {
+      // This function will need to be implemented in main.mo where we can
+      // look up the user by their principal and then find their associated documents
+      // For now, return an empty array
       #ok([])
     };
     
-    public func getDocumentsByStudent(studentId: StudentId) : async Result.Result<[Document], Error> {
-      // TODO: Implement proper authentication when msg.caller is available
-      // For now, bypass authentication to allow testing
-      let _caller = Principal.fromText("2vxsx-fae");
-      
-      // Skip authorization check for now
-      let authorized = true;
-      
-      if (not authorized) {
-        return #err(#Unauthorized);
-      };
+    public func getDocumentsByStudent(_caller: Principal, studentId: StudentId) : async Result.Result<[Document], Error> {
+      // Authorization check should be implemented in main.mo where we have access to user service
+      // For now, return the documents for the requested student
       
       let documentsArray = Iter.toArray(documents.entries());
       let allDocuments = Array.map<(DocumentId, Document), Document>(documentsArray, func((_, doc)) = doc);

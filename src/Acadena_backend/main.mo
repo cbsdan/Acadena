@@ -3,6 +3,8 @@ import Text "mo:base/Text";
 import Result "mo:base/Result";
 import Principal "mo:base/Principal";
 import Nat "mo:base/Nat";
+import Iter "mo:base/Iter";
+import Array "mo:base/Array";
 
 // Import our modules
 import Types "./modules/Types";
@@ -41,7 +43,7 @@ actor Acadena {
   private stable var nextDocumentId : Nat = 1;
   private stable var nextTransactionId : Nat = 1;
   private stable var nextUserId : Nat = 1;
-  private stable var nextRequestId : Nat = 1;
+  private stable var _nextRequestId : Nat = 1;
   
   // Storage - Data maps
   private var institutions = Map.HashMap<InstitutionId, Institution>(10, Text.equal, Text.hash);
@@ -72,12 +74,13 @@ actor Acadena {
   
   // Forward declaration for registerUser function needed by other services
   private func registerUserImpl(
+    caller: Principal,
     email: Text,
     firstName: Text,
     lastName: Text,
     role: UserRole
   ) : async Result.Result<User, Error> {
-    await userService.registerUser(email, firstName, lastName, role)
+    await userService.registerUser(caller, email, firstName, lastName, role)
   };
 
   private let userService = Users.UserService(
@@ -140,26 +143,52 @@ actor Acadena {
     users
   );
   
+  // Helper functions for authentication-aware operations
+  private func getUserFromPrincipal(caller: Principal) : ?User {
+    switch (principalToUser.get(caller)) {
+      case (?userId) { users.get(userId) };
+      case null { null };
+    }
+  };
+  
+  private func _getStudentByUserId(userId: UserId) : ?Student {
+    let studentsArray = Iter.toArray(students.entries());
+    for ((_, student) in Iter.fromArray(studentsArray)) {
+      switch (student.userId) {
+        case (?sUserId) { if (sUserId == userId) { return ?student } };
+        case null {};
+      };
+    };
+    null
+  };
+  
+  private func _getUserRole(caller: Principal) : ?UserRole {
+    switch (getUserFromPrincipal(caller)) {
+      case (?user) { ?user.role };
+      case null { null };
+    }
+  };
+  
   // User Management Functions
-  public func registerUser(
+  public shared(msg) func registerUser(
     email: Text,
     firstName: Text,
     lastName: Text,
     role: UserRole
   ) : async Result.Result<User, Error> {
-    await userService.registerUser(email, firstName, lastName, role)
+    await userService.registerUser(msg.caller, email, firstName, lastName, role)
   };
   
-  public func getCurrentUserInfo() : async ?User {
-    await userService.getCurrentUserInfo()
+  public shared(msg) func getCurrentUserInfo() : async ?User {
+    await userService.getCurrentUserInfo(msg.caller)
   };
   
-  public func getAllUsers() : async Result.Result<[User], Error> {
-    await userService.getAllUsers()
+  public shared(msg) func getAllUsers() : async Result.Result<[User], Error> {
+    await userService.getAllUsers(msg.caller)
   };
   
   // Institution Management Functions
-  public func registerInstitutionWithAdmin(
+  public shared(msg) func registerInstitutionWithAdmin(
     name: Text,
     institutionType: InstitutionType,
     address: Text,
@@ -173,7 +202,7 @@ actor Acadena {
     adminEmail: Text
   ) : async Result.Result<(Institution, User), Error> {
     await institutionService.registerInstitutionWithAdmin(
-      name, institutionType, address, contactEmail, contactPhone,
+      msg.caller, name, institutionType, address, contactEmail, contactPhone,
       accreditationNumber, website, description,
       adminFirstName, adminLastName, adminEmail
     )
@@ -204,7 +233,7 @@ actor Acadena {
   };
   
   // Student Management Functions
-  public func registerStudentWithUser(
+  public shared(msg) func registerStudentWithUser(
     institutionId: InstitutionId,
     firstName: Text,
     lastName: Text,
@@ -214,7 +243,7 @@ actor Acadena {
     yearLevel: Nat
   ) : async Result.Result<(Student, User), Error> {
     await studentService.registerStudentWithUser(
-      institutionId, firstName, lastName, email, studentNumber, program, yearLevel
+      msg.caller, institutionId, firstName, lastName, email, studentNumber, program, yearLevel
     )
   };
   
@@ -232,7 +261,7 @@ actor Acadena {
     )
   };
   
-  public func createStudentWithInvitationCode(
+  public shared(msg) func createStudentWithInvitationCode(
     institutionId: InstitutionId,
     firstName: Text,
     lastName: Text,
@@ -241,11 +270,30 @@ actor Acadena {
     program: Text,
     yearLevel: Nat
   ) : async Result.Result<(Student, Text), Error> {
-    // TODO: Get the actual user ID from authentication
-    let createdBy = "USER_1"; // Temporary hardcoded value
-    await studentService.createStudentWithInvitationCode(
-      institutionId, firstName, lastName, email, studentNumber, program, yearLevel, createdBy
-    )
+    // Get the authenticated user to use as createdBy
+    switch (getUserFromPrincipal(msg.caller)) {
+      case (?user) {
+        switch (user.role) {
+          case (#InstitutionAdmin(adminInstitutionId)) {
+            // Verify admin can only create students for their institution
+            if (adminInstitutionId != institutionId) {
+              return #err(#Unauthorized);
+            };
+            await studentService.createStudentWithInvitationCode(
+              institutionId, firstName, lastName, email, studentNumber, program, yearLevel, user.id
+            )
+          };
+          case (#SystemAdmin) {
+            // System admin can create students for any institution
+            await studentService.createStudentWithInvitationCode(
+              institutionId, firstName, lastName, email, studentNumber, program, yearLevel, user.id
+            )
+          };
+          case (_) { #err(#Unauthorized) };
+        }
+      };
+      case null { #err(#Unauthorized) };
+    }
   };
   
   public query func getStudent(studentId: StudentId) : async Result.Result<Student, Error> {
@@ -259,36 +307,72 @@ actor Acadena {
     })
   };
   
-  public func getMyStudentInfo() : async Result.Result<Student, Error> {
-    await studentService.getMyStudentInfo()
+  public shared(msg) func getMyStudentInfo() : async Result.Result<Student, Error> {
+    switch (getUserFromPrincipal(msg.caller)) {
+      case (?user) {
+        switch (user.role) {
+          case (#Student(studentId)) {
+            switch (students.get(studentId)) {
+              case (?student) { #ok(student) };
+              case null { #err(#NotFound) };
+            }
+          };
+          case (_) { #err(#Unauthorized) };
+        }
+      };
+      case null { #err(#Unauthorized) };
+    }
   };
   
   // Document Management Functions
-  public func issueDocument(
+  public shared(msg) func issueDocument(
     studentId: StudentId,
     issuingInstitutionId: InstitutionId,
     documentType: DocumentType,
     title: Text,
     content: Text
   ) : async Result.Result<Document, Error> {
-    await documentService.issueDocument(studentId, issuingInstitutionId, documentType, title, content)
+    await documentService.issueDocument(msg.caller, studentId, issuingInstitutionId, documentType, title, content)
   };
   
   public query func getDocument(documentId: DocumentId) : async Result.Result<Document, Error> {
     documentService.getDocument(documentId)
   };
   
-  public func getMyDocuments() : async Result.Result<[Document], Error> {
-    await documentService.getMyDocuments()
+  public shared(msg) func getMyDocuments() : async Result.Result<[Document], Error> {
+    switch (getUserFromPrincipal(msg.caller)) {
+      case (?user) {
+        switch (user.role) {
+          case (#Student(studentId)) {
+            // Return documents for this student
+            await documentService.getDocumentsByStudent(msg.caller, studentId)
+          };
+          case (#InstitutionAdmin(institutionId)) {
+            // For institution admins, return all documents from their institution
+            let documentsArray = Iter.toArray(documents.entries());
+            let allDocuments = Array.map<(DocumentId, Document), Document>(documentsArray, func((_, doc)) = doc);
+            let institutionDocuments = Array.filter<Document>(allDocuments, func(document) = document.issuingInstitutionId == institutionId);
+            #ok(institutionDocuments)
+          };
+          case (#SystemAdmin) {
+            // System admin can see all documents
+            let documentsArray = Iter.toArray(documents.entries());
+            let allDocuments = Array.map<(DocumentId, Document), Document>(documentsArray, func((_, doc)) = doc);
+            #ok(allDocuments)
+          };
+        }
+      };
+      case null { #err(#Unauthorized) };
+    }
   };
   
-  public func getDocumentsByStudent(studentId: StudentId) : async Result.Result<[Document], Error> {
-    await documentService.getDocumentsByStudent(studentId)
+  public shared(msg) func getDocumentsByStudent(studentId: StudentId) : async Result.Result<[Document], Error> {
+    await documentService.getDocumentsByStudent(msg.caller, studentId)
   };
   
   // Invitation Code Management Functions
-  public func claimInvitationCode(code: Text) : async Result.Result<User, Error> {
-    await invitationService.claimInvitationCode(code)
+  public shared(msg) func claimInvitationCode(code: Text) : async Result.Result<User, Error> {
+    await invitationService.claimInvitationCode(msg.caller, code)
   };
   
   public query func getInvitationCodeInfo(code: Text) : async Result.Result<{
@@ -300,7 +384,7 @@ actor Acadena {
     invitationService.getInvitationCodeInfo(code)
   };
   
-  public func getMyInvitationCodes() : async Result.Result<[{
+  public shared(msg) func getMyInvitationCodes() : async Result.Result<[{
     code: Text;
     studentName: Text;
     studentId: StudentId;
@@ -309,9 +393,43 @@ actor Acadena {
     isUsed: Bool;
     usedDate: ?Int;
   }], Error> {
-    switch (invitationService.getMyInvitationCodes()) {
-      case (#ok(codes)) { #ok(codes) };
-      case (#err(error)) { #err(error) };
+    switch (getUserFromPrincipal(msg.caller)) {
+      case (?user) {
+        // Filter invitation codes by the current user
+        let invitationsArray = Iter.toArray(invitationCodes.entries());
+        let myInvitations = Array.filter<(Text, InvitationCode)>(
+          invitationsArray, 
+          func((_, invitation)) = invitation.createdBy == user.id
+        );
+        
+        let results = Array.map<(Text, InvitationCode), {
+          code: Text;
+          studentName: Text;
+          studentId: StudentId;
+          createdDate: Int;
+          expiryDate: Int;
+          isUsed: Bool;
+          usedDate: ?Int;
+        }>(myInvitations, func((code, invitation)) {
+          let studentName = switch (students.get(invitation.studentId)) {
+            case (?student) { student.firstName # " " # student.lastName };
+            case null { "Unknown Student" };
+          };
+          
+          {
+            code = code;
+            studentName = studentName;
+            studentId = invitation.studentId;
+            createdDate = invitation.createdDate;
+            expiryDate = invitation.expiryDate;
+            isUsed = invitation.isUsed;
+            usedDate = invitation.usedDate;
+          }
+        });
+        
+        #ok(results)
+      };
+      case null { #err(#Unauthorized) };
     }
   };
   

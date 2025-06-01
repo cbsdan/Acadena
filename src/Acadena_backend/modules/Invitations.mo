@@ -93,10 +93,7 @@ module Invitations {
       };
     };
     
-    public func claimInvitationCode(code: Text) : async Result.Result<User, Error> {
-      
-      // TODO: Implement proper authentication when msg.caller is available
-      // For now, we'll create a user account without checking if one already exists
+    public func claimInvitationCode(caller: Principal, code: Text) : async Result.Result<User, Error> {
       
       // Get invitation code
       switch (invitationCodes.get(code)) {
@@ -116,12 +113,10 @@ module Invitations {
               incrementUserId();
               
               let studentRole = #Student(invitation.studentId);
-              // Use a temporary principal since msg.caller is not available
-              let tempPrincipal = Principal.fromText("2vxsx-fae");
               
               let user: User = {
                 id = userId;
-                principal = tempPrincipal;
+                principal = caller;
                 role = studentRole;
                 email = student.email;
                 firstName = student.firstName;
@@ -132,7 +127,7 @@ module Invitations {
               };
               
               users.put(userId, user);
-              principalToUser.put(tempPrincipal, userId);
+              principalToUser.put(caller, userId);
               
               // Update student record with user ID
               let updatedStudent = {
@@ -145,7 +140,7 @@ module Invitations {
               let usedInvitation = {
                 invitation with
                 isUsed = true;
-                usedBy = ?tempPrincipal;
+                usedBy = ?caller;
                 usedDate = ?Time.now();
               };
               invitationCodes.put(code, usedInvitation);

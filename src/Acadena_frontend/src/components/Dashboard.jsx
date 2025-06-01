@@ -7,7 +7,17 @@ const Dashboard = ({
   documents, 
   myInvitationCodes 
 }) => {
+  // Add null check for user
+  if (!user) {
+    return (
+      <div className="dashboard">
+        <div className="loading">Loading user information...</div>
+      </div>
+    );
+  }
+
   const getUserRoleDisplay = () => {
+    if (!user.role) return 'Unknown';
     if (user.role.SystemAdmin) return 'System Administrator';
     if (user.role.InstitutionAdmin) return 'Institution Administrator';
     if (user.role.Student) return 'Student';
@@ -17,9 +27,10 @@ const Dashboard = ({
   return (
     <div className="dashboard">
       <div className="user-info">
-        <h2>Welcome, {user.firstName} {user.lastName}</h2>
+        <h2>Welcome, {user.firstName || 'User'} {user.lastName || ''}</h2>
         <p><strong>Role:</strong> {getUserRoleDisplay()}</p>
-        <p><strong>Email:</strong> {user.email}</p>
+        <p><strong>Email:</strong> {user.email || 'Not provided'}</p>
+        <p><strong>Principal:</strong> {user.principal || 'Not available'}</p>
       </div>
 
       <div className="stats-grid">
