@@ -144,7 +144,7 @@ actor Acadena {
 
   public func finalizeUpload(
     sessionId : Text
-  ) : async Result.Result<Document, Error> {
+  ) : async Result.Result<(Document, Text), Error> {
     await documentService.finalizeUpload(sessionId);
   };
   // Create invitation code function for students service

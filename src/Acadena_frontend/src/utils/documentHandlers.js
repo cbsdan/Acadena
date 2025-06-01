@@ -89,7 +89,9 @@ export const documentHandlers = {
       const finalizeRes = await Acadena_backend.finalizeUpload(sessionId);
       if (finalizeRes.err) throw new Error("Failed to finalize upload");
 
-      alert('Document uploaded successfully!');
+      const [document, token] = finalizeRes.ok;
+      alert(`Document uploaded successfully!\n\nToken: ${token}`);
+
       setUploadForm({
         studentId: '',
         documentType: 'Transcript',

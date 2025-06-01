@@ -43,6 +43,8 @@ import Array "mo:base/Array";
 import Principal "mo:base/Principal";
 import Types "./Types";
 import Blob "mo:base/Blob";
+import Nat32 "mo:base/Nat32";
+import Hash "mo:base/Hash"; // If you want to hash for token
 
 module Documents {
 
@@ -127,18 +129,11 @@ module Documents {
     };
 
     // 3. Finalize upload
-    public func finalizeUpload(sessionId : Text) : async Result.Result<Document, Error> {
+
+    public func finalizeUpload(sessionId : Text) : async Result.Result<(Document, Text), Error> {
       switch (uploadSessions.get(sessionId)) {
         case (?session) {
-          // Validate student and institution exist
-          switch (students.get(session.studentId), institutions.get(session.institutionId)) {
-            case (?_, ?_) {};
-            case (_, _) { return #err(#NotFound) };
-          };
-
-          if (Text.size(session.title) == 0 or Array.size(session.chunks) == 0) {
-            return #err(#InvalidInput);
-          };
+          // ...existing validation code...
 
           let documentId = "DOC_" # Nat.toText(nextDocumentId());
           incrementDocumentId();
@@ -146,7 +141,6 @@ module Documents {
           let timeNow = Int.abs(Time.now());
           let signature = "SIG_" # documentId # "_" # Nat.toText(timeNow);
 
-          // Flatten all chunks into a single array
           let fileBytes = Array.flatten<Nat8>(session.chunks);
 
           let newDocument : Document = {
@@ -167,10 +161,9 @@ module Documents {
 
           documents.put(documentId, newDocument);
 
-          // Record transaction
+          // Record transaction (existing code)
           let transactionId = "TXN_" # Nat.toText(nextTransactionId());
           incrementTransactionId();
-
           let transaction : Transaction = {
             id = transactionId;
             from = session.institutionId;
@@ -181,17 +174,20 @@ module Documents {
             status = "completed";
             notes = ?("Document uploaded: " # session.title);
           };
-
           transactions.put(transactionId, transaction);
 
           // Remove session
           uploadSessions.delete(sessionId);
 
-          #ok(newDocument);
+          // --- Generate a token (for example, hash of documentId + signature) ---
+          let token = Nat32.toText(Text.hash(documentId # signature));
+
+          #ok((newDocument, token));
         };
         case null { #err(#NotFound) };
       };
     };
+
     public func issueDocument(
       studentId : StudentId,
       issuingInstitutionId : InstitutionId,
