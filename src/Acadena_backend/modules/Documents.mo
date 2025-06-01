@@ -1,3 +1,37 @@
+// import Map "mo:base/HashMap";
+// import Time "mo:base/Time";
+// import Result "mo:base/Result";
+// import Text "mo:base/Text";
+// import Nat "mo:base/Nat";
+// import Int "mo:base/Int";
+// import Iter "mo:base/Iter";
+// import Array "mo:base/Array";
+// import Principal "mo:base/Principal";
+// import Types "./Types";
+
+// module Documents {
+
+//   public type Document = Types.Document;
+//   public type DocumentId = Types.DocumentId;
+//   public type DocumentType = Types.DocumentType;
+//   public type Student = Types.Student;
+//   public type StudentId = Types.StudentId;
+//   public type Institution = Types.Institution;
+//   public type InstitutionId = Types.InstitutionId;
+//   public type Transaction = Types.Transaction;
+//   public type TransactionType = Types.TransactionType;
+//   public type Error = Types.Error;
+
+//   public class DocumentService(
+//     documents: Map.HashMap<DocumentId, Document>,
+//     students: Map.HashMap<StudentId, Student>,
+//     institutions: Map.HashMap<InstitutionId, Institution>,
+//     transactions: Map.HashMap<Text, Transaction>,
+//     nextDocumentId: () -> Nat,
+//     incrementDocumentId: () -> (),
+//     nextTransactionId: () -> Nat,
+//     incrementTransactionId: () -> ()
+//   ) {
 import Map "mo:base/HashMap";
 import Time "mo:base/Time";
 import Result "mo:base/Result";
@@ -8,9 +42,10 @@ import Iter "mo:base/Iter";
 import Array "mo:base/Array";
 import Principal "mo:base/Principal";
 import Types "./Types";
+import Blob "mo:base/Blob";
 
 module Documents {
-  
+
   public type Document = Types.Document;
   public type DocumentId = Types.DocumentId;
   public type DocumentType = Types.DocumentType;
@@ -21,67 +56,195 @@ module Documents {
   public type Transaction = Types.Transaction;
   public type TransactionType = Types.TransactionType;
   public type Error = Types.Error;
-  
+
+  // Temporary storage for in-progress uploads
+  type UploadSession = {
+    studentId : StudentId;
+    institutionId : InstitutionId;
+    documentType : DocumentType;
+    title : Text;
+    description : Text;
+    fileName : Text;
+    fileType : Text;
+    chunks : [[Nat8]];
+  };
+
   public class DocumentService(
-    documents: Map.HashMap<DocumentId, Document>,
-    students: Map.HashMap<StudentId, Student>,
-    institutions: Map.HashMap<InstitutionId, Institution>,
-    transactions: Map.HashMap<Text, Transaction>,
-    nextDocumentId: () -> Nat,
-    incrementDocumentId: () -> (),
-    nextTransactionId: () -> Nat,
-    incrementTransactionId: () -> ()
+    documents : Map.HashMap<DocumentId, Document>,
+    students : Map.HashMap<StudentId, Student>,
+    institutions : Map.HashMap<InstitutionId, Institution>,
+    transactions : Map.HashMap<Text, Transaction>,
+    nextDocumentId : () -> Nat,
+    incrementDocumentId : () -> (),
+    nextTransactionId : () -> Nat,
+    incrementTransactionId : () -> (),
   ) {
-    
+    let uploadSessions = Map.HashMap<Text, UploadSession>(10, Text.equal, Text.hash);
+
+    // 1. Start upload session
+    public func startUpload(
+      sessionId : Text,
+      studentId : StudentId,
+      institutionId : InstitutionId,
+      documentType : DocumentType,
+      title : Text,
+      description : Text,
+      fileName : Text,
+      fileType : Text,
+    ) : async Result.Result<(), Error> {
+      if (uploadSessions.get(sessionId) != null) {
+        return #err(#InvalidInput);
+      };
+      uploadSessions.put(
+        sessionId,
+        {
+          studentId = studentId;
+          institutionId = institutionId;
+          documentType = documentType;
+          title = title;
+          description = description;
+          fileName = fileName;
+          fileType = fileType;
+          chunks = [];
+        },
+      );
+      #ok(());
+    };
+
+    // 2. Upload a chunk
+    public func uploadChunk(sessionId : Text, chunk : [Nat8]) : async Result.Result<(), Error> {
+      switch (uploadSessions.get(sessionId)) {
+        case (?session) {
+          let updated = {
+            session with
+            chunks = Array.append(session.chunks, [chunk])
+          };
+          uploadSessions.put(sessionId, updated);
+          #ok(());
+        };
+        case null { #err(#NotFound) };
+      };
+    };
+
+    // 3. Finalize upload
+    public func finalizeUpload(sessionId : Text) : async Result.Result<Document, Error> {
+      switch (uploadSessions.get(sessionId)) {
+        case (?session) {
+          // Validate student and institution exist
+          switch (students.get(session.studentId), institutions.get(session.institutionId)) {
+            case (?_, ?_) {};
+            case (_, _) { return #err(#NotFound) };
+          };
+
+          if (Text.size(session.title) == 0 or Array.size(session.chunks) == 0) {
+            return #err(#InvalidInput);
+          };
+
+          let documentId = "DOC_" # Nat.toText(nextDocumentId());
+          incrementDocumentId();
+
+          let timeNow = Int.abs(Time.now());
+          let signature = "SIG_" # documentId # "_" # Nat.toText(timeNow);
+
+          // Flatten all chunks into a single array
+          let fileBytes = Array.flatten<Nat8>(session.chunks);
+
+          let newDocument : Document = {
+            id = documentId;
+            studentId = session.studentId;
+            issuingInstitutionId = session.institutionId;
+            documentType = session.documentType;
+            title = session.title;
+            content = "";
+            description = ?session.description;
+            file = ?Blob.fromArray(fileBytes);
+            fileName = ?session.fileName;
+            fileType = ?session.fileType;
+            issueDate = Time.now();
+            signature = signature;
+            isVerified = true;
+          };
+
+          documents.put(documentId, newDocument);
+
+          // Record transaction
+          let transactionId = "TXN_" # Nat.toText(nextTransactionId());
+          incrementTransactionId();
+
+          let transaction : Transaction = {
+            id = transactionId;
+            from = session.institutionId;
+            to = session.studentId;
+            transactionType = #DocumentIssue;
+            documentId = ?documentId;
+            timestamp = Time.now();
+            status = "completed";
+            notes = ?("Document uploaded: " # session.title);
+          };
+
+          transactions.put(transactionId, transaction);
+
+          // Remove session
+          uploadSessions.delete(sessionId);
+
+          #ok(newDocument);
+        };
+        case null { #err(#NotFound) };
+      };
+    };
     public func issueDocument(
-      studentId: StudentId,
-      issuingInstitutionId: InstitutionId,
-      documentType: DocumentType,
-      title: Text,
-      content: Text
+      studentId : StudentId,
+      issuingInstitutionId : InstitutionId,
+      documentType : DocumentType,
+      title : Text,
+      content : Text,
     ) : async Result.Result<Document, Error> {
-      
+
       // TODO: Implement proper authentication when msg.caller is available
       // For now, bypass authentication to allow testing
       let _caller = Principal.fromText("2vxsx-fae");
-      
+
       // Validate student and institution exist
       switch (students.get(studentId), institutions.get(issuingInstitutionId)) {
         case (?_, ?_) {};
         case (_, _) { return #err(#NotFound) };
       };
-      
+
       // Validate input
       if (Text.size(title) == 0 or Text.size(content) == 0) {
         return #err(#InvalidInput);
       };
-      
+
       let documentId = "DOC_" # Nat.toText(nextDocumentId());
       incrementDocumentId();
-      
+
       let timeNow = Int.abs(Time.now());
-      
+
       // Generate digital signature (simplified)
       let signature = "SIG_" # documentId # "_" # Nat.toText(timeNow);
-      
+
       let newDocument : Document = {
         id = documentId;
         studentId = studentId;
         issuingInstitutionId = issuingInstitutionId;
         documentType = documentType;
         title = title;
-        content = content; // In production, this would be encrypted
+        content = content;
+        description = null; // <-- add this line
+        file = null;
+        fileName = null;
+        fileType = null;
         issueDate = Time.now();
         signature = signature;
         isVerified = true;
       };
-      
+
       documents.put(documentId, newDocument);
-      
+
       // Record transaction
       let transactionId = "TXN_" # Nat.toText(nextTransactionId());
       incrementTransactionId();
-      
+
       let transaction : Transaction = {
         id = transactionId;
         from = issuingInstitutionId;
@@ -92,45 +255,45 @@ module Documents {
         status = "completed";
         notes = ?("Document issued: " # title);
       };
-      
+
       transactions.put(transactionId, transaction);
-      
-      #ok(newDocument)
+
+      #ok(newDocument);
     };
-    
-    public func getDocument(documentId: DocumentId) : Result.Result<Document, Error> {
+
+    public func getDocument(documentId : DocumentId) : Result.Result<Document, Error> {
       switch (documents.get(documentId)) {
         case (?document) { #ok(document) };
         case null { #err(#NotFound) };
-      }
+      };
     };
-    
+
     public func getMyDocuments() : async Result.Result<[Document], Error> {
       // TODO: Implement proper authentication when msg.caller is available
       // For now, bypass authentication to allow testing
       let _caller = Principal.fromText("2vxsx-fae");
-      
+
       // For now, return empty array since we can't identify the user
-      #ok([])
+      #ok([]);
     };
-    
-    public func getDocumentsByStudent(studentId: StudentId) : async Result.Result<[Document], Error> {
+
+    public func getDocumentsByStudent(studentId : StudentId) : async Result.Result<[Document], Error> {
       // TODO: Implement proper authentication when msg.caller is available
       // For now, bypass authentication to allow testing
       let _caller = Principal.fromText("2vxsx-fae");
-      
+
       // Skip authorization check for now
       let authorized = true;
-      
+
       if (not authorized) {
         return #err(#Unauthorized);
       };
-      
+
       let documentsArray = Iter.toArray(documents.entries());
       let allDocuments = Array.map<(DocumentId, Document), Document>(documentsArray, func((_, doc)) = doc);
       let studentDocuments = Array.filter<Document>(allDocuments, func(document) = document.studentId == studentId);
-      
-      #ok(studentDocuments)
+
+      #ok(studentDocuments);
     };
-  }
-}
+  };
+};

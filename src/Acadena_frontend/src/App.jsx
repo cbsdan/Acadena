@@ -20,6 +20,7 @@ import {
   Dashboard,
   StudentRegistration,
   DocumentManagement,
+  DocumentUpload,
   LandingPage,
   Institutions,
 } from './components';
@@ -80,6 +81,12 @@ function App() {
     yearLevel: 1
   });
 
+const [uploadDocumentForm, setUploadDocumentForm] = useState({
+  studentId: '',
+  documentType: 'Transcript',
+  title: '',
+  file: null
+});
   const [documentForm, setDocumentForm] = useState({
     studentId: '',
     documentType: 'Transcript',
@@ -129,7 +136,16 @@ function App() {
       // Error already handled in handleLogin
     }
   };
-
+const handleDocumentUpload = (e) => {
+  return documentHandlers.handleDocumentUpload(
+    e,
+    user,
+    uploadDocumentForm,
+    setUploadDocumentForm,
+    setLoading,
+    loadSystemStatus
+  );
+};
   const handleLogoutWithNav = () => {
     handleLogout();
     setCurrentView('login');
@@ -197,17 +213,18 @@ function App() {
   };
 
   const getNavItems = () => {
-    const items = [{ key: 'dashboard', label: 'Dashboard' }];
-    
-    if (user?.role.InstitutionAdmin) {
-      items.push(
-        { key: 'students', label: 'Register Student' },
-        { key: 'documents', label: 'Issue Document' }
-      );
-    }
-    
-    return items;
-  };
+  const items = [{ key: 'dashboard', label: 'Dashboard' }];
+  
+  if (user?.role.InstitutionAdmin) {
+    items.push(
+      { key: 'students', label: 'Register Student' },
+      { key: 'documents', label: 'Issue Document' },
+      { key: 'upload', label: 'Upload Document' } 
+    );
+  }
+  
+  return items;
+};
 
   // ...rest of your existing render logic...
   if (!isAuthenticated) {
@@ -262,33 +279,42 @@ function App() {
       />
 
       <main className="main-content">
-        {currentView === 'dashboard' && (
-          <Dashboard
-            user={user}
-            systemStatus={systemStatus}
-            students={students}
-            documents={documents}
-            myInvitationCodes={myInvitationCodes}
-          />
-        )}
-        {currentView === 'students' && user?.role.InstitutionAdmin && (
-          <StudentRegistration
-            studentForm={studentForm}
-            setStudentForm={setStudentForm}
-            handleStudentSubmit={handleStudentSubmit}
-            loading={loading}
-          />
-        )}
-        {currentView === 'documents' && user?.role.InstitutionAdmin && (
-          <DocumentManagement
-            documentForm={documentForm}
-            setDocumentForm={setDocumentForm}
-            handleDocumentSubmit={handleDocumentSubmit}
-            students={students}
-            loading={loading}
-          />
-        )}
-      </main>
+  {currentView === 'dashboard' && (
+    <Dashboard
+      user={user}
+      systemStatus={systemStatus}
+      students={students}
+      documents={documents}
+      myInvitationCodes={myInvitationCodes}
+    />
+  )}
+  {currentView === 'students' && user?.role.InstitutionAdmin && (
+    <StudentRegistration
+      studentForm={studentForm}
+      setStudentForm={setStudentForm}
+      handleStudentSubmit={handleStudentSubmit}
+      loading={loading}
+    />
+  )}
+  {currentView === 'documents' && user?.role.InstitutionAdmin && (
+    <DocumentManagement
+      documentForm={documentForm}
+      setDocumentForm={setDocumentForm}
+      handleDocumentSubmit={handleDocumentSubmit}
+      students={students}
+      loading={loading}
+    />
+  )}
+  {currentView === 'upload' && user?.role.InstitutionAdmin && (
+    <DocumentUpload
+      uploadForm={uploadDocumentForm}
+      setUploadForm={setUploadDocumentForm}
+      handleDocumentUpload={handleDocumentUpload}
+      students={students}
+      loading={loading}
+    />
+  )}
+</main>
     </div>
   );
 }
