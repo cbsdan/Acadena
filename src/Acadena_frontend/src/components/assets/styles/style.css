@@ -870,3 +870,543 @@ body {
 .app-header.scrolled .header-title {
   font-size: 1.6rem;
 }
+
+/* ===== REGISTRATION PAGE STYLES ===== */
+.registration-page {
+  min-height: 100vh;
+  display: flex;
+  background: linear-gradient(135deg, #262e62 0%, #1a1f47 100%);
+}
+
+/* ===== LEFT SIDE - IMAGE & MESSAGE ===== */
+.registration-left {
+  flex: 1;
+  background: #262e62;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.registration-left::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 30%, rgba(235, 69, 95, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(186, 215, 233, 0.1) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.registration-left-content {
+  max-width: 500px;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+}
+
+.registration-image-container {
+  position: relative;
+  margin-bottom: 3rem;
+}
+
+.registration-image {
+  width: 100%;
+  max-width: 400px;
+  height: auto;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  position: relative;
+  z-index: 2;
+}
+
+.image-glow-effect {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  right: 20px;
+  bottom: 20px;
+  background: linear-gradient(135deg, #eb455f, #bad7e9);
+  border-radius: 20px;
+  filter: blur(30px);
+  opacity: 0.4;
+  z-index: 1;
+}
+
+.registration-message {
+  color: white;
+}
+
+.message-title {
+  font-size: 2.5rem;
+  font-weight: 900;
+  margin-bottom: 1.5rem;
+  background: linear-gradient(135deg, #ffffff 0%, #bad7e9 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-family: 'Nunito', sans-serif;
+}
+
+.message-text {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin-bottom: 2.5rem;
+  opacity: 0.9;
+  font-weight: 400;
+}
+
+.feature-highlights {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.highlight-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  width: 100%;
+}
+
+.highlight-icon {
+  font-size: 1.25rem;
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #eb455f, #bad7e9);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* ===== RIGHT SIDE - FORM ===== */
+.registration-right {
+  flex: 1;
+  background: #bad7e9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+.registration-form-container {
+  width: 100%;
+  max-width: 600px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  padding: 3rem;
+  box-shadow: 0 25px 50px rgba(43, 52, 103, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.form-header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.form-title {
+  font-size: 2.25rem;
+  font-weight: 900;
+  color: var(--primary-color);
+  margin-bottom: 0.5rem;
+  font-family: 'Nunito', sans-serif;
+}
+
+.form-subtitle {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.registration-form {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.form-section {
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 16px;
+  padding: 2rem;
+  border: 1px solid rgba(43, 52, 103, 0.1);
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--primary-color);
+  margin-bottom: 1.5rem;
+  font-family: 'Nunito', sans-serif;
+}
+
+.section-icon {
+  font-size: 1.5rem;
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(235, 69, 95, 0.3);
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-label {
+  display: block;
+  font-weight: 600;
+  color: var(--primary-color);
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  font-family: 'Nunito', sans-serif;
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border: 2px solid rgba(43, 52, 103, 0.1);
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-family: 'Nunito', sans-serif;
+  background: rgba(255, 255, 255, 0.9);
+  transition: var(--transition);
+  color: var(--primary-color);
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--secondary-color);
+  box-shadow: 0 0 0 3px rgba(235, 69, 95, 0.1);
+  background: white;
+}
+
+.form-input::placeholder,
+.form-textarea::placeholder {
+  color: var(--text-light);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.form-select {
+  cursor: pointer;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.submit-btn {
+  flex: 2;
+  font-size: 1.05rem;
+  padding: 1.25rem 2rem;
+}
+
+.back-btn {
+  flex: 1;
+}
+
+/* ===== UPDATED REGISTRATION PAGE STYLES ===== */
+.registration-page {
+  min-height: 100vh;
+  display: flex;
+  background: linear-gradient(135deg, #262e62 0%, #1a1f47 100%);
+}
+
+/* ===== LEFT SIDE - IMAGE & MESSAGE (BIGGER) ===== */
+.registration-left {
+  flex: 1.2; /* Made bigger */
+  background: #262e62;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 3rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.registration-left::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 30%, rgba(235, 69, 95, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(186, 215, 233, 0.1) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.registration-left-content {
+  max-width: 600px; /* Increased from 500px */
+  text-align: center;
+  position: relative;
+  z-index: 2;
+}
+
+.registration-image-container {
+  position: relative;
+  margin-bottom: 3rem;
+}
+
+.registration-image {
+  width: 100%;
+  max-width: 500px; /* Increased from 400px */
+  height: auto;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  position: relative;
+  z-index: 2;
+}
+
+/* ===== RIGHT SIDE - SLEEKER FORM ===== */
+.registration-right {
+  flex: 0.8; /* Made smaller to balance */
+  background: #bad7e9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+.registration-form-container {
+  width: 100%;
+  max-width: 520px; /* Reduced from 600px */
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(20px);
+  border-radius: 20px; /* Reduced from 24px */
+  padding: 2.5rem; /* Reduced from 3rem */
+  box-shadow: 0 20px 40px rgba(43, 52, 103, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.form-header {
+  text-align: center;
+  margin-bottom: 2rem; /* Reduced from 2.5rem */
+}
+
+.form-title {
+  font-size: 2rem; /* Reduced from 2.25rem */
+  font-weight: 900;
+  color: var(--primary-color);
+  margin-bottom: 0.5rem;
+  font-family: 'Nunito', sans-serif;
+}
+
+.form-subtitle {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.registration-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem; /* Reduced from 2rem */
+}
+
+/* ===== SLEEKER FORM SECTIONS ===== */
+.form-section {
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 14px; /* Reduced from 16px */
+  padding: 1.5rem; /* Reduced from 2rem */
+  border: 1px solid rgba(43, 52, 103, 0.08);
+  box-shadow: 0 2px 10px rgba(43, 52, 103, 0.05);
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.1rem; /* Reduced from 1.25rem */
+  font-weight: 700;
+  color: var(--primary-color);
+  margin-bottom: 1.25rem; /* Reduced from 1.5rem */
+  font-family: 'Nunito', sans-serif;
+}
+
+.section-icon {
+  font-size: 1.3rem;
+  width: 36px; /* Reduced from 40px */
+  height: 36px;
+  background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+  border-radius: 8px; /* Reduced from 10px */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 12px rgba(235, 69, 95, 0.25);
+}
+
+/* ===== CLEANER FORM INPUTS ===== */
+.form-group {
+  margin-bottom: 1.25rem; /* Reduced from 1.5rem */
+}
+
+.form-label {
+  display: block;
+  font-weight: 600;
+  color: var(--primary-color);
+  margin-bottom: 0.4rem; /* Reduced from 0.5rem */
+  font-size: 0.85rem; /* Reduced from 0.9rem */
+  font-family: 'Nunito', sans-serif;
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+  width: 100%;
+  padding: 0.75rem 1rem; /* Reduced padding */
+  border: 1.5px solid rgba(43, 52, 103, 0.12); /* Thinner border */
+  border-radius: 10px; /* Reduced from 12px */
+  font-size: 0.9rem; /* Reduced from 0.95rem */
+  font-family: 'Nunito', sans-serif;
+  background: rgba(255, 255, 255, 0.95);
+  transition: var(--transition);
+  color: var(--primary-color);
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--secondary-color);
+  box-shadow: 0 0 0 2px rgba(235, 69, 95, 0.08); /* Reduced shadow */
+  background: white;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem; /* Reduced from 1rem */
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 50px; /* Reduced from 60px */
+}
+
+/* ===== CLEANER FORM ACTIONS ===== */
+.form-actions {
+  display: flex;
+  gap: 0.75rem; /* Reduced from 1rem */
+  margin-top: 0.5rem; /* Reduced from 1rem */
+}
+
+.submit-btn {
+  flex: 2;
+  font-size: 1rem; /* Reduced from 1.05rem */
+  padding: 1rem 1.5rem; /* Reduced padding */
+}
+
+.back-btn {
+  flex: 1;
+  font-size: 0.9rem;
+}
+
+/* ===== RESPONSIVE UPDATES ===== */
+@media (max-width: 1024px) {
+  .registration-page {
+    flex-direction: column;
+  }
+  
+  .registration-left {
+    flex: none;
+    min-height: 45vh; /* Increased from 40vh */
+    padding: 2.5rem 2rem;
+  }
+  
+  .registration-right {
+    flex: none;
+    min-height: 55vh;
+    padding: 1.5rem;
+  }
+  
+  .registration-image {
+    max-width: 350px; /* Increased from 300px */
+  }
+}
+
+@media (max-width: 768px) {
+  .registration-left {
+    padding: 2rem 1.5rem;
+  }
+  
+  .registration-right {
+    padding: 1rem;
+  }
+  
+  .registration-form-container {
+    padding: 2rem;
+    max-width: 100%;
+  }
+  
+  .form-section {
+    padding: 1.25rem;
+  }
+  
+  .registration-image {
+    max-width: 280px;
+  }
+}
+
+@media (max-width: 480px) {
+  .registration-form-container {
+    padding: 1.5rem;
+    border-radius: 16px;
+  }
+  
+  .form-section {
+    padding: 1rem;
+  }
+  
+  .section-title {
+    font-size: 1rem;
+  }
+  
+  .section-icon {
+    width: 32px;
+    height: 32px;
+    font-size: 1.1rem;
+  }
+  
+  .registration-image {
+    max-width: 220px;
+  }
+}
