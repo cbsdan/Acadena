@@ -43,6 +43,7 @@ export const documentHandlers = {
       setLoading(false);
     }
   },
+
   handleDocumentUpload: async (
     e,
     user,
@@ -104,5 +105,23 @@ export const documentHandlers = {
     } finally {
       setLoading(false);
     }
-  }
+  },
+
+  fetchDocumentsByInstitution: async (institutionId, setDocuments, setLoading) => {
+    setLoading(true);
+    try {
+      const result = await Acadena_backend.getDocumentsByInstitution(institutionId);
+      if ('ok' in result) {
+        setDocuments(result.ok);
+      } else {
+        alert('Error fetching documents: ' + JSON.stringify(result.err));
+        setDocuments([]); // Optionally clear documents on error
+      }
+    } catch (error) {
+      alert('Error fetching documents: ' + error.message);
+      setDocuments([]); // Optionally clear documents on error
+    } finally {
+      setLoading(false); 
+    }
+  },
 };

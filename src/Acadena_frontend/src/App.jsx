@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import './App.css';
 
 // Import hooks and utilities
@@ -21,6 +21,7 @@ import {
   StudentRegistration,
   DocumentManagement,
   DocumentUpload,
+  DocumentPerInstitution,
   LandingPage,
   Institutions,
 } from './components';
@@ -42,7 +43,8 @@ function App() {
   const [showLandingPage, setShowLandingPage] = useState(true);
   const [showInstitutions, setShowInstitutions] = useState(false);
   const [currentView, setCurrentView] = useState('login');
-
+  const [institutionDocuments, setInstitutionDocuments] = useState([]);
+  const [institutionDocumentsLoading, setInstitutionDocumentsLoading] = useState(false);
   // ...existing code for data state and form states...
   const {
     institutions,
@@ -80,6 +82,13 @@ function App() {
     program: '',
     yearLevel: 1
   });
+const loadDocumentsByInstitution = useCallback((institutionId) => {
+  documentHandlers.fetchDocumentsByInstitution(
+    institutionId,
+    setInstitutionDocuments,
+    setInstitutionDocumentsLoading
+  );
+}, [setInstitutionDocuments, setInstitutionDocumentsLoading]);
 
 const [uploadDocumentForm, setUploadDocumentForm] = useState({
   studentId: '',
@@ -219,7 +228,8 @@ const handleDocumentUpload = (e) => {
     items.push(
       { key: 'students', label: 'Register Student' },
       { key: 'documents', label: 'Issue Document' },
-      { key: 'upload', label: 'Upload Document' } 
+      { key: 'upload', label: 'Upload Document' } ,
+      { key: 'institution-documents', label: 'Institution Documents' } // <-- Add this line
     );
   }
   
@@ -278,43 +288,53 @@ const handleDocumentUpload = (e) => {
         setCurrentView={setCurrentView}
       />
 
-      <main className="main-content">
-  {currentView === 'dashboard' && (
-    <Dashboard
-      user={user}
-      systemStatus={systemStatus}
-      students={students}
-      documents={documents}
-      myInvitationCodes={myInvitationCodes}
-    />
-  )}
-  {currentView === 'students' && user?.role.InstitutionAdmin && (
-    <StudentRegistration
-      studentForm={studentForm}
-      setStudentForm={setStudentForm}
-      handleStudentSubmit={handleStudentSubmit}
-      loading={loading}
-    />
-  )}
-  {currentView === 'documents' && user?.role.InstitutionAdmin && (
-    <DocumentManagement
-      documentForm={documentForm}
-      setDocumentForm={setDocumentForm}
-      handleDocumentSubmit={handleDocumentSubmit}
-      students={students}
-      loading={loading}
-    />
-  )}
-  {currentView === 'upload' && user?.role.InstitutionAdmin && (
-    <DocumentUpload
-      uploadForm={uploadDocumentForm}
-      setUploadForm={setUploadDocumentForm}
-      handleDocumentUpload={handleDocumentUpload}
-      students={students}
-      loading={loading}
-    />
-  )}
-</main>
+    <main className="main-content">
+      {currentView === 'dashboard' && (
+        <Dashboard
+          user={user}
+          systemStatus={systemStatus}
+          students={students}
+          documents={documents}
+          myInvitationCodes={myInvitationCodes}
+        />
+      )}
+      {currentView === 'students' && user?.role.InstitutionAdmin && (
+        <StudentRegistration
+          studentForm={studentForm}
+          setStudentForm={setStudentForm}
+          handleStudentSubmit={handleStudentSubmit}
+          loading={loading}
+        />
+      )}
+      {currentView === 'documents' && user?.role.InstitutionAdmin && (
+        <DocumentManagement
+          documentForm={documentForm}
+          setDocumentForm={setDocumentForm}
+          handleDocumentSubmit={handleDocumentSubmit}
+          students={students}
+          loading={loading}
+        />
+      )}
+      {currentView === 'upload' && user?.role.InstitutionAdmin && (
+        <DocumentUpload
+          uploadForm={uploadDocumentForm}
+          setUploadForm={setUploadDocumentForm}
+          handleDocumentUpload={handleDocumentUpload}
+          students={students}
+          loading={loading}
+        />
+      )}
+     {currentView === 'institution-documents' && user?.role.InstitutionAdmin && (
+  <DocumentPerInstitution
+    institutionId={user?.role?.InstitutionAdmin}
+    documents={institutionDocuments}
+    setDocuments={setInstitutionDocuments}
+    loading={institutionDocumentsLoading}
+    setLoading={setInstitutionDocumentsLoading}
+    loadDocumentsByInstitution={loadDocumentsByInstitution} // <-- Add this line
+  />
+)}
+    </main>
     </div>
   );
 }

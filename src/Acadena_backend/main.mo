@@ -360,6 +360,10 @@ actor Acadena {
     await documentService.issueDocument(studentId, issuingInstitutionId, documentType, title, content);
   };
 
+  public func getDocumentsByInstitution(institutionId : InstitutionId) : async Result.Result<[Document], Error> {
+    await documentService.getDocumentsByInstitution(institutionId);
+  };
+
   public query func getDocument(documentId : DocumentId) : async Result.Result<Document, Error> {
     documentService.getDocument(documentId);
   };
