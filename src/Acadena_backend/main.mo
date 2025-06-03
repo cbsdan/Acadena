@@ -87,22 +87,37 @@ actor Acadena {
 
   // Initialize service instances
 
-  // Forward declaration for registerUser function needed by other services
-  private func registerUserImpl(
-    email : Text,
-    firstName : Text,
-    lastName : Text,
-    role : UserRole,
-  ) : async Result.Result<User, Error> {
-    await userService.registerUser(email, firstName, lastName, role);
-  };
-
   private let userService = Users.UserService(
     users,
     principalToUser,
     getNextUserId,
     incrementUserId,
   );
+
+  // Wrapper function for institution service - matches expected signature
+  private func registerUserForInstitution(
+    caller: Principal,
+    email : Text,
+    firstName : Text,
+    lastName : Text,
+    role : UserRole,
+  ) : async Result.Result<User, Error> {
+    await userService.registerUser(caller, email, firstName, lastName, role);
+  };
+
+  // Wrapper function for student service - matches expected signature  
+  private func registerUserForStudent(
+    caller: Principal,
+    email : Text,
+    firstName : Text,
+    lastName : Text,
+    role : UserRole,
+  ) : async Result.Result<User, Error> {
+    // Students module doesn't use caller principal - it handles authentication internally
+    // Using a hardcoded principal for now, but the Students module will handle proper auth
+    // let defaultPrincipal = Principal.fromText("2vxsx-fae");
+    await userService.registerUser(caller, email, firstName, lastName, role);
+  };
 
   private let invitationService = Invitations.InvitationService(
     invitationCodes,
@@ -160,7 +175,7 @@ actor Acadena {
     institutions,
     getNextInstitutionId,
     incrementInstitutionId,
-    registerUserImpl,
+    registerUserForInstitution,
   );
 
   private let studentService = Students.StudentService(
@@ -168,7 +183,7 @@ actor Acadena {
     institutions,
     getNextStudentId,
     incrementStudentId,
-    registerUserImpl,
+    registerUserForStudent,
     createInvitationCodeImpl,
   );
 
@@ -192,25 +207,26 @@ actor Acadena {
   );
 
   // User Management Functions
-  public func registerUser(
+  public shared(msg) func registerUser(
     email : Text,
     firstName : Text,
     lastName : Text,
     role : UserRole,
   ) : async Result.Result<User, Error> {
-    await userService.registerUser(email, firstName, lastName, role);
+    await userService.registerUser(msg.caller, email, firstName, lastName, role);
   };
 
-  public func getCurrentUserInfo() : async ?User {
-    await userService.getCurrentUserInfo();
+  public shared(msg) func getCurrentUserInfo() : async ?User {
+    // Pass the actual caller from msg.caller
+    await userService.getCurrentUserInfo(msg.caller);
   };
 
-  public func getAllUsers() : async Result.Result<[User], Error> {
+  public shared(msg) func getAllUsers() : async Result.Result<[User], Error> {
     await userService.getAllUsers();
   };
 
   // Institution Management Functions
-  public func registerInstitutionWithAdmin(
+  public shared(msg) func registerInstitutionWithAdmin(
     name : Text,
     institutionType : InstitutionType,
     address : Text,
@@ -224,6 +240,7 @@ actor Acadena {
     adminEmail : Text,
   ) : async Result.Result<(Institution, User), Error> {
     await institutionService.registerInstitutionWithAdmin(
+      msg.caller, 
       name,
       institutionType,
       address,
@@ -270,6 +287,7 @@ actor Acadena {
 
   // Student Management Functions
   public func registerStudentWithUser(
+    caller : Principal,
     institutionId : InstitutionId,
     firstName : Text,
     lastName : Text,
@@ -279,6 +297,7 @@ actor Acadena {
     yearLevel : Nat,
   ) : async Result.Result<(Student, User), Error> {
     await studentService.registerStudentWithUser(
+      caller,
       institutionId,
       firstName,
       lastName,

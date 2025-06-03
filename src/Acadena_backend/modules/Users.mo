@@ -6,47 +6,56 @@ import Text "mo:base/Text";
 import Nat "mo:base/Nat";
 import Iter "mo:base/Iter";
 import Array "mo:base/Array";
+import Debug "mo:base/Debug";
 import Types "./Types";
-
+import Bool "mo:base/Bool";
 module Users {
-  
+
   public type User = Types.User;
   public type UserId = Types.UserId;
   public type UserRole = Types.UserRole;
   public type Error = Types.Error;
-  
+
   public class UserService(
-    users: Map.HashMap<UserId, User>,
-    principalToUser: Map.HashMap<Principal, UserId>,
-    nextUserId: () -> Nat,
-    incrementUserId: () -> ()
+    users : Map.HashMap<UserId, User>,
+    principalToUser : Map.HashMap<Principal, UserId>,
+    nextUserId : () -> Nat,
+    incrementUserId : () -> (),
   ) {
-    
+
+    private let DEV_MODE = true; // Set to false in production
+
     public func registerUser(
-      email: Text,
-      firstName: Text,
-      lastName: Text,
-      role: UserRole
+      caller : Principal,
+      email : Text,
+      firstName : Text,
+      lastName : Text,
+      role : UserRole,
     ) : async Result.Result<User, Error> {
-      // TODO: Implement proper authentication when msg.caller is available
-      // For now, use a temporary principal to bypass authentication
-      let caller = Principal.fromText("2vxsx-fae");
-      
+      // Enhanced debugging
+      let principalText = Principal.toText(caller);
+      Debug.print("🔍 UserService.registerUser: Received principal: " # principalText);
+      Debug.print("🔍 UserService.registerUser: Principal length: " # Nat.toText(Text.size(principalText)));
+      Debug.print("🔍 UserService.registerUser: Is anonymous (2vxsx-fae): " # Bool.toText(principalText == "2vxsx-fae"));
+      Debug.print("🔍 UserService.registerUser: DEV_MODE: " # Bool.toText(DEV_MODE));
+
       // Check if user already exists
-      switch (principalToUser.get(caller)) {
-        case (?_) { return #err(#AlreadyExists) };
-        case null { };
+      if (not DEV_MODE) {
+        switch (principalToUser.get(caller)) {
+          case (?_) { return #err(#AlreadyExists) };
+          case null {};
+        };
       };
-      
+
       // Validate input
       if (Text.size(email) == 0 or Text.size(firstName) == 0 or Text.size(lastName) == 0) {
         return #err(#InvalidInput);
       };
-      
+
       let userId = "USER_" # Nat.toText(nextUserId());
       incrementUserId();
-      
-      let user: User = {
+
+      let user : User = {
         id = userId;
         principal = caller;
         role = role;
@@ -57,40 +66,27 @@ module Users {
         lastLoginDate = null;
         isActive = true;
       };
-      
+
       users.put(userId, user);
       principalToUser.put(caller, userId);
-      
-      #ok(user)
+
+      #ok(user);
     };
-    
-    public func getCurrentUserInfo() : async ?User {
-      // TODO: Implement proper authentication when msg.caller is available
-      // For now, use a temporary principal to bypass authentication
-      let caller = Principal.fromText("2vxsx-fae");
+
+    public func getCurrentUserInfo(caller : Principal) : async ?User {
       switch (principalToUser.get(caller)) {
         case (?userId) { users.get(userId) };
         case null { null };
-      }
+      };
     };
-    
+
     public func getAllUsers() : async Result.Result<[User], Error> {
-      // TODO: Implement proper authentication when msg.caller is available
-      // For now, bypass authentication to allow testing
-      let _caller = Principal.fromText("2vxsx-fae");
-      
-      // Skip authentication for now
-      // Check authentication and authorization
-      // let authResult = requireAuth(caller);
-      // let auth = switch (authResult) {
-      //   case (#ok(a)) { a };
-      //   case (#err(e)) { return #err(e) };
-      // };
-      
-      // For now, return all users without authorization check
+      //TODO: Implement proper authorization check
+
+      // Add proper authorization check here if needed
       let usersArray = Iter.toArray(users.entries());
       let allUsers = Array.map<(UserId, User), User>(usersArray, func((_, user)) = user);
-      #ok(allUsers)
+      #ok(allUsers);
     };
-  }
-}
+  };
+};

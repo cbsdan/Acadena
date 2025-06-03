@@ -24,11 +24,12 @@ module Students {
     institutions: Map.HashMap<InstitutionId, Institution>,
     nextStudentId: () -> Nat,
     incrementStudentId: () -> (),
-    registerUser: (Text, Text, Text, UserRole) -> async Result.Result<User, Error>,
+    registerUser: (Principal, Text, Text, Text, UserRole) -> async Result.Result<User, Error>,
     generateInvitationCode: (StudentId, InstitutionId, UserId) -> Result.Result<Text, Error>
   ) {
     
     public func registerStudentWithUser(
+      caller: Principal,
       institutionId: InstitutionId,
       firstName: Text,
       lastName: Text,
@@ -39,7 +40,7 @@ module Students {
     ) : async Result.Result<(Student, User), Error> {
       // TODO: Implement proper authentication when msg.caller is available
       // For now, bypass authentication to allow testing
-      let _caller = Principal.fromText("2vxsx-fae");
+      // let _caller = Principal.fromText("2vxsx-fae");
       
       // Validate institution exists
       switch (institutions.get(institutionId)) {
@@ -57,7 +58,7 @@ module Students {
       
       // Create student user account
       let studentRole = #Student(studentId);
-      let studentUserResult = await registerUser(email, firstName, lastName, studentRole);
+      let studentUserResult = await registerUser(caller, email, firstName, lastName, studentRole);
       
       let studentUser = switch (studentUserResult) {
         case (#ok(user)) { user };

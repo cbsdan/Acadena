@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './App.css';
 
 // Import hooks and utilities
@@ -24,6 +24,8 @@ import {
   LandingPage,
   Institutions,
 } from './components';
+
+import { internetIdentityRegistrationService } from './services/InternetIdentityRegistrationService';
 
 function App() {
   // Authentication and navigation state
@@ -81,12 +83,12 @@ function App() {
     yearLevel: 1
   });
 
-const [uploadDocumentForm, setUploadDocumentForm] = useState({
-  studentId: '',
-  documentType: 'Transcript',
-  title: '',
-  file: null
-});
+  const [uploadDocumentForm, setUploadDocumentForm] = useState({
+    studentId: '',
+    documentType: 'Transcript',
+    title: '',
+    file: null
+  });
   const [documentForm, setDocumentForm] = useState({
     studentId: '',
     documentType: 'Transcript',
@@ -99,6 +101,29 @@ const [uploadDocumentForm, setUploadDocumentForm] = useState({
   });
 
   const [invitationCodeInfo, setInvitationCodeInfo] = useState(null);
+
+  useEffect(() => {
+    // Check for pending institution registration on app load
+    const checkPendingRegistration = async () => {
+      if (internetIdentityRegistrationService.isRegistrationInProgress()) {
+        console.log('🔄 App: Checking for pending institution registration...');
+
+        try {
+          await institutionHandlers.handleReturnFromII(
+            setInstitutionWithAdminForm,
+            setLoading,
+            loadInstitutions,
+            loadSystemStatus,
+            setCurrentView
+          );
+        } catch (error) {
+          console.error('Error handling pending registration:', error);
+        }
+      }
+    };
+
+    checkPendingRegistration();
+  }, []);
 
   // Function to navigate from landing page to app
   const enterApp = () => {
@@ -136,16 +161,16 @@ const [uploadDocumentForm, setUploadDocumentForm] = useState({
       // Error already handled in handleLogin
     }
   };
-const handleDocumentUpload = (e) => {
-  return documentHandlers.handleDocumentUpload(
-    e,
-    user,
-    uploadDocumentForm,
-    setUploadDocumentForm,
-    setLoading,
-    loadSystemStatus
-  );
-};
+  const handleDocumentUpload = (e) => {
+    return documentHandlers.handleDocumentUpload(
+      e,
+      user,
+      uploadDocumentForm,
+      setUploadDocumentForm,
+      setLoading,
+      loadSystemStatus
+    );
+  };
   const handleLogoutWithNav = () => {
     handleLogout();
     setCurrentView('login');
@@ -213,18 +238,18 @@ const handleDocumentUpload = (e) => {
   };
 
   const getNavItems = () => {
-  const items = [{ key: 'dashboard', label: 'Dashboard' }];
-  
-  if (user?.role.InstitutionAdmin) {
-    items.push(
-      { key: 'students', label: 'Register Student' },
-      { key: 'documents', label: 'Issue Document' },
-      { key: 'upload', label: 'Upload Document' } 
-    );
-  }
-  
-  return items;
-};
+    const items = [{ key: 'dashboard', label: 'Dashboard' }];
+
+    if (user?.role.InstitutionAdmin) {
+      items.push(
+        { key: 'students', label: 'Register Student' },
+        { key: 'documents', label: 'Issue Document' },
+        { key: 'upload', label: 'Upload Document' }
+      );
+    }
+
+    return items;
+  };
 
   // ...rest of your existing render logic...
   if (!isAuthenticated) {
@@ -234,7 +259,7 @@ const handleDocumentUpload = (e) => {
 
         <main className="main-content">
           {currentView === 'login' && (
-            <Login 
+            <Login
               handleLogin={handleLoginWithNav}
               loading={loading}
               setCurrentView={setCurrentView}
@@ -267,54 +292,54 @@ const handleDocumentUpload = (e) => {
 
   return (
     <div className="app">
-      <Header 
-        handleLogout={handleLogoutWithNav} 
-        isAuthenticated={isAuthenticated} 
+      <Header
+        handleLogout={handleLogoutWithNav}
+        isAuthenticated={isAuthenticated}
       />
 
-      <Navigation 
+      <Navigation
         getNavItems={getNavItems}
         currentView={currentView}
         setCurrentView={setCurrentView}
       />
 
       <main className="main-content">
-  {currentView === 'dashboard' && (
-    <Dashboard
-      user={user}
-      systemStatus={systemStatus}
-      students={students}
-      documents={documents}
-      myInvitationCodes={myInvitationCodes}
-    />
-  )}
-  {currentView === 'students' && user?.role.InstitutionAdmin && (
-    <StudentRegistration
-      studentForm={studentForm}
-      setStudentForm={setStudentForm}
-      handleStudentSubmit={handleStudentSubmit}
-      loading={loading}
-    />
-  )}
-  {currentView === 'documents' && user?.role.InstitutionAdmin && (
-    <DocumentManagement
-      documentForm={documentForm}
-      setDocumentForm={setDocumentForm}
-      handleDocumentSubmit={handleDocumentSubmit}
-      students={students}
-      loading={loading}
-    />
-  )}
-  {currentView === 'upload' && user?.role.InstitutionAdmin && (
-    <DocumentUpload
-      uploadForm={uploadDocumentForm}
-      setUploadForm={setUploadDocumentForm}
-      handleDocumentUpload={handleDocumentUpload}
-      students={students}
-      loading={loading}
-    />
-  )}
-</main>
+        {currentView === 'dashboard' && (
+          <Dashboard
+            user={user}
+            systemStatus={systemStatus}
+            students={students}
+            documents={documents}
+            myInvitationCodes={myInvitationCodes}
+          />
+        )}
+        {currentView === 'students' && user?.role.InstitutionAdmin && (
+          <StudentRegistration
+            studentForm={studentForm}
+            setStudentForm={setStudentForm}
+            handleStudentSubmit={handleStudentSubmit}
+            loading={loading}
+          />
+        )}
+        {currentView === 'documents' && user?.role.InstitutionAdmin && (
+          <DocumentManagement
+            documentForm={documentForm}
+            setDocumentForm={setDocumentForm}
+            handleDocumentSubmit={handleDocumentSubmit}
+            students={students}
+            loading={loading}
+          />
+        )}
+        {currentView === 'upload' && user?.role.InstitutionAdmin && (
+          <DocumentUpload
+            uploadForm={uploadDocumentForm}
+            setUploadForm={setUploadDocumentForm}
+            handleDocumentUpload={handleDocumentUpload}
+            students={students}
+            loading={loading}
+          />
+        )}
+      </main>
     </div>
   );
 }

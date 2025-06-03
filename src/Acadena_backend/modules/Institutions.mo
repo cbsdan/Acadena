@@ -5,6 +5,7 @@ import Text "mo:base/Text";
 import Nat "mo:base/Nat";
 import Iter "mo:base/Iter";
 import Array "mo:base/Array";
+import Principal "mo:base/Principal";
 import Types "./Types";
 
 module Institutions {
@@ -19,10 +20,11 @@ module Institutions {
     institutions: Map.HashMap<InstitutionId, Institution>,
     nextInstitutionId: () -> Nat,
     incrementInstitutionId: () -> (),
-    registerUser: (Text, Text, Text, Types.UserRole) -> async Result.Result<User, Error>
+    registerUser: (Principal, Text, Text, Text, Types.UserRole) -> async Result.Result<User, Error>
   ) {
     
     public func registerInstitutionWithAdmin(
+      caller: Principal,  
       name: Text,
       institutionType: InstitutionType,
       address: Text,
@@ -57,7 +59,7 @@ module Institutions {
       
       // Create institution admin user
       let adminRole = #InstitutionAdmin(institutionId);
-      let adminUserResult = await registerUser(adminEmail, adminFirstName, adminLastName, adminRole);
+      let adminUserResult = await registerUser(caller, adminEmail, adminFirstName, adminLastName, adminRole);
       
       let adminUser = switch (adminUserResult) {
         case (#ok(user)) { user };
