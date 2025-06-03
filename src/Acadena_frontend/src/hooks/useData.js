@@ -62,6 +62,8 @@ export const useData = (user, isAuthenticated) => {
       console.error('Error loading invitation codes:', error);
     }
   };
+  // TODO: NEED TO USE THE STUDENT ACCOUNT RATHER THAN THE USER ACCOUNT
+  // const loadMyStudentAccount
 
   const loadData = async () => {
     try {

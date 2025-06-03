@@ -122,7 +122,7 @@ module Invitations {
               incrementUserId();
 
               let studentRole = #Student(invitation.studentId);
-
+              // TODO : NEED TO ADD THE INSTITUTION AFFILIATED
               let user : User = {
                 id = userId;
                 principal = caller;

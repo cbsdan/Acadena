@@ -1,4 +1,5 @@
 import Principal "mo:base/Principal";
+// import TransferInstitute "TransferInstitute";
 
 module Types {
 
@@ -7,6 +8,8 @@ module Types {
   public type StudentId = Text;
   public type DocumentId = Text;
   public type UserId = Text;
+  public type TransferId = Text;
+  public type TransactionId = Text;
 
   // User role types
   public type UserRole = {
@@ -57,6 +60,8 @@ module Types {
     adminUserId : ?UserId; // Link to institution admin user
   };
 
+  
+  // TODO : NEED TO ADD THE INSTITUTION AFFILIATED FIELD
   public type Student = {
     id : StudentId;
     institutionId : InstitutionId;
@@ -71,6 +76,18 @@ module Types {
     userId : ?UserId; // Link to student user account
   };
 
+  public type TransferInstitute = 
+  {
+    id : TransferId;
+    studentId : StudentId;
+    fromInstitutionId : InstitutionId;
+    toInstitutionId : InstitutionId;
+    transferDate : Int;
+    status : Text; // "pending", "approved", "rejected"
+    notes : ?Text;
+    isVerified : Bool; // Whether the transfer has been verified by both institutions
+  };
+
   public type DocumentType = {
     #Transcript;
     #Diploma;
@@ -79,6 +96,8 @@ module Types {
     #Other : Text;
   };
 
+
+  // TODO : ADD A CURRENT OWNER OF THE DOCUMENT
   public type Document = {
     id : DocumentId;
     studentId : StudentId;
@@ -94,6 +113,7 @@ module Types {
     signature : Text;
     isVerified : Bool;
   };
+
 
   public type TransactionType = {
     #DocumentIssue;
