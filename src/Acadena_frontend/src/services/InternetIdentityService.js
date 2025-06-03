@@ -1,5 +1,5 @@
 import { AuthClient } from '@dfinity/auth-client';
-import { createActor, Acadena_backend } from 'declarations/Acadena_backend';
+import { createActor } from 'declarations/Acadena_backend';
 import { HttpAgent } from '@dfinity/agent';
 import { internetIdentityRegistrationService } from './InternetIdentityRegistrationService';
 

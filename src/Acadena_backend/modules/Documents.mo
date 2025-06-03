@@ -291,5 +291,15 @@ module Documents {
 
       #ok(studentDocuments);
     };
+    
+    public func getDocumentsByInstitution(institutionId : InstitutionId) : async Result.Result<[Document], Error> {
+      let documentsArray = Iter.toArray(documents.entries());
+      let allDocuments = Array.map<(DocumentId, Document), Document>(documentsArray, func((_, doc)) = doc);
+      let institutionDocuments = Array.filter<Document>(
+        allDocuments,
+        func(document) = document.issuingInstitutionId == institutionId,
+      );
+      #ok(institutionDocuments);
+    };
   };
 };
