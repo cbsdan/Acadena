@@ -64,6 +64,8 @@ const Dashboard = ({
     return 'Good evening';
   };
 
+  console.log('Dashboard rendered with user:', students);
+
   return (
     <div className="dashboard">
       {/* Floating Background Elements */}
@@ -101,6 +103,9 @@ const Dashboard = ({
                 </svg>
                 <span>{user.email}</span>
               </div>
+               {/* <div className="user-role">
+                <span className="role-badge">{user.Student.institutionId}</span>
+              </div> */}
             </div>
           </div>
         </div>
