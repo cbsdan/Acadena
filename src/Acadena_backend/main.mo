@@ -396,8 +396,8 @@ actor Acadena {
   };
 
   // Invitation Code Management Functions
-  public func claimInvitationCode(code : Text) : async Result.Result<User, Error> {
-    await invitationService.claimInvitationCode(code);
+  public shared({ caller }) func claimInvitationCode(code : Text) : async Result.Result<User, Error> {
+    await invitationService.claimInvitationCode(caller, code);
   };
 
   public query func getInvitationCodeInfo(code : Text) : async Result.Result<{ studentName : Text; institutionId : InstitutionId; isValid : Bool; expiryDate : Int }, Error> {

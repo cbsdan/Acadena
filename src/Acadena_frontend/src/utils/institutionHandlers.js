@@ -1,4 +1,3 @@
-import { Acadena_backend } from 'declarations/Acadena_backend';
 import { internetIdentityService } from '../services/InternetIdentityService';
 import { internetIdentityRegistrationService } from '../services/InternetIdentityRegistrationService';
 
