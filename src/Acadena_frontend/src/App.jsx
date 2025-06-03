@@ -225,21 +225,20 @@ const handleDocumentUpload = (e) => {
   };
 
   const getNavItems = () => {
-    const items = [{ key: 'dashboard', label: 'Dashboard', icon: '📊' }];
+    const items = [{ key: 'dashboard', label: 'Dashboard'}];
     
     if (user?.role.InstitutionAdmin) {
       items.push(
-        { key: 'students', label: 'Register Student', icon: '👥' },
-        { key: 'documents', label: 'Issue Document', icon: '📄' },
-        { key: 'upload', label: 'Upload Document', icon: '📤' },
-        { key: 'institution-documents', label: 'Institution Documents', icon: '🏛️' }
+        { key: 'students', label: 'Register Student'},
+        { key: 'documents', label: 'Issue Document' },
+        { key: 'upload', label: 'Upload Document' },
+        { key: 'institution-documents', label: 'Institution Documents' }
       );
     }
     
     return items;
   };
 
-  // Enhanced Navigation Component with improved styling
   const ModernNavigation = ({ navItems, currentView, setCurrentView }) => (
     <nav style={navStyles.nav}>
       <div style={navStyles.navContainer}>
@@ -289,7 +288,6 @@ const handleDocumentUpload = (e) => {
     </nav>
   );
 
-  // Modern Navigation Styles
   const navStyles = {
     nav: {
       background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',

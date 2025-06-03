@@ -133,7 +133,7 @@ const Dashboard = ({
                 <path d="M22 10v6M2 10l10-5 10 5-10 5z" stroke="currentColor" strokeWidth="2"/>
                 <path d="M6 12v5c3 0 9-1 9-5" stroke="currentColor" strokeWidth="2"/>
               </svg>
-              My Students
+              Students
             </h2>
             <div className="section-actions">
               <span className="section-count">{students.length} students</span>
