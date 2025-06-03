@@ -23,8 +23,6 @@ module Users {
     incrementUserId : () -> (),
   ) {
 
-    private let DEV_MODE = true; // Set to false in production
-
     public func registerUser(
       caller : Principal,
       email : Text,
@@ -37,14 +35,11 @@ module Users {
       Debug.print("🔍 UserService.registerUser: Received principal: " # principalText);
       Debug.print("🔍 UserService.registerUser: Principal length: " # Nat.toText(Text.size(principalText)));
       Debug.print("🔍 UserService.registerUser: Is anonymous (2vxsx-fae): " # Bool.toText(principalText == "2vxsx-fae"));
-      Debug.print("🔍 UserService.registerUser: DEV_MODE: " # Bool.toText(DEV_MODE));
 
       // Check if user already exists
-      if (not DEV_MODE) {
-        switch (principalToUser.get(caller)) {
-          case (?_) { return #err(#AlreadyExists) };
-          case null {};
-        };
+      switch (principalToUser.get(caller)) {
+        case (?_) { return #err(#AlreadyExists) };
+        case null {};
       };
 
       // Validate input
