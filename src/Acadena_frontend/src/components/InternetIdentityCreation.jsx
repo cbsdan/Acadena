@@ -47,6 +47,43 @@ const InternetIdentityCreation = ({
     setError('');
     
     try {
+      // Log form data before saving
+      console.log('💾 Creating Identity with form data:', formData);
+      
+      // Validate form data is complete before proceeding
+      if (formData) {
+        const requiredFields = [
+          'name', 'institutionType', 'address', 'contactEmail', 
+          'contactPhone', 'accreditationNumber', 'adminFirstName', 
+          'adminLastName', 'adminEmail'
+        ];
+        
+        const missingFields = requiredFields.filter(field => 
+          !formData[field] || 
+          (typeof formData[field] === 'string' && formData[field].trim() === '')
+        );
+        
+        if (missingFields.length > 0) {
+          console.error('❌ Missing required fields in form data:', missingFields);
+          const errorMsg = `Missing required fields: ${missingFields.join(', ')}`;
+          setError(errorMsg);
+          setRedirecting(false);
+          if (onError) {
+            onError(new Error(errorMsg));
+          }
+          return;
+        }
+      }
+      
+      // Save form data directly to localStorage as a backup
+      if (formData) {
+        console.log('💾 Saving form data directly to localStorage as backup');
+        localStorage.setItem('pendingInstitutionRegistration', JSON.stringify({
+          formData,
+          timestamp: Date.now()
+        }));
+      }
+      
       const result = await internetIdentityRegistrationService.createNewInternetIdentity(displayName, formData);
       
       if (result.success) {

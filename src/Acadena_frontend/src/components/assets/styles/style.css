@@ -1969,6 +1969,94 @@ body {
   white-space: nowrap;
 }
 
+/* Generate button for accreditation number */
+.generate-button {
+  background: linear-gradient(135deg, var(--secondary-color) 0%, #d63c54 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.875rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: 'Nunito', sans-serif;
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+  min-width: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(235, 69, 95, 0.2);
+}
+
+.generate-button:hover {
+  background: linear-gradient(135deg, #d63c54 0%, var(--secondary-color) 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(235, 69, 95, 0.3);
+}
+
+.generate-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(235, 69, 95, 0.2);
+}
+
+/* Validation indicators for accreditation number */
+.validation-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  transition: var(--transition);
+}
+
+.validation-indicator.checking {
+  color: var(--text-secondary);
+  background: rgba(43, 52, 103, 0.05);
+}
+
+.validation-indicator.success {
+  color: #059669;
+  background: rgba(5, 150, 105, 0.1);
+}
+
+.validation-indicator.error {
+  color: var(--secondary-color);
+  background: rgba(235, 69, 95, 0.1);
+}
+
+.validation-icon {
+  font-size: 1rem;
+}
+
+.spinner-small {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(43, 52, 103, 0.2);
+  border-top: 2px solid var(--text-secondary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Input field states for validation */
+.form-input.success {
+  border-color: #059669;
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1);
+}
+
+.form-input.error {
+  border-color: var(--secondary-color);
+  box-shadow: 0 0 0 3px rgba(235, 69, 95, 0.1);
+}
+
 /* ===== INVITATION INFO CARD ===== */
 .invitation-info-card {
   background: rgba(255, 255, 255, 0.8);

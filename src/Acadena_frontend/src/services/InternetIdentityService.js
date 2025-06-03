@@ -112,13 +112,25 @@ class InternetIdentityService {
   }
 
   async getCurrentUser() {
-    if (!this.actor) return null;
+    if (!this.actor) {
+      console.log('InternetIdentityService: No actor available for getCurrentUser');
+      return null;
+    }
     
     try {
+      console.log('InternetIdentityService: Calling getCurrentUserInfo...');
       const result = await this.actor.getCurrentUserInfo();
-      return result.length > 0 ? result[0] : null;
+      console.log('InternetIdentityService: getCurrentUserInfo result:', result);
+      
+      if (result.length > 0) {
+        console.log('InternetIdentityService: User found:', result[0]);
+        return result[0];
+      } else {
+        console.log('InternetIdentityService: No user data found (new user)');
+        return null;
+      }
     } catch (error) {
-      console.error('Error getting current user:', error);
+      console.error('InternetIdentityService: Error getting current user:', error);
       return null;
     }
   }
@@ -226,6 +238,60 @@ class InternetIdentityService {
     return this.sessions.get(principal);
   }
 
+  /**
+   * Updates the current session with fresh user information
+   * This method is used after registration or profile updates to ensure
+   * all user data is current without requiring a full re-login
+   */
+  async updateSessionWithUserInfo() {
+    try {
+      console.log('🔄 InternetIdentityService: Updating session with fresh user info...');
+      
+      if (!this.isAuthenticated()) {
+        console.log('⚠️ InternetIdentityService: Cannot update session - not authenticated');
+        return null;
+      }
+      
+      // Get fresh user data from backend
+      const userInfo = await this.getCurrentUser();
+      
+      // Update the current session with the new user info
+      if (this.identity) {
+        const principal = this.identity.getPrincipal().toString();
+        let currentSession = this.sessions.get(principal);
+        
+        if (currentSession) {
+          // Update the session with new user info
+          currentSession.userInfo = userInfo;
+          this.sessions.set(principal, currentSession);
+          
+          console.log('✅ InternetIdentityService: Session updated with new user info:', userInfo);
+        } else {
+          console.log('⚠️ InternetIdentityService: No session found for current principal - creating new session');
+          
+          // Create a new session if none exists for this principal
+          const anchor = await this.getIdentityAnchor();
+          currentSession = {
+            principal,
+            userInfo: userInfo,
+            identity: this.identity,
+            actor: this.actor,
+            loginTime: new Date(),
+            anchor: anchor
+          };
+          
+          this.sessions.set(principal, currentSession);
+          console.log('✅ InternetIdentityService: Created new session for principal:', principal);
+        }
+      }
+      
+      return userInfo;
+    } catch (error) {
+      console.error('❌ InternetIdentityService: Error updating session with user info:', error);
+      return null;
+    }
+  }
+
   // Integration with Internet Identity Registration
   async createNewInternetIdentity() {
     return await internetIdentityRegistrationService.createNewInternetIdentity();
@@ -262,27 +328,62 @@ class InternetIdentityService {
    */
   async checkForPendingInstitutionRegistration() {
     try {
+      console.log('🔍 InternetIdentityService: Checking for pending registration...');
+      
       // Check if user is authenticated and has pending registration
       if (this.isAuthenticated()) {
+        console.log('✅ InternetIdentityService: User is authenticated');
         const pendingFormData = internetIdentityRegistrationService.checkForPendingRegistration();
+        console.log('📋 InternetIdentityService: Pending form data retrieved:', pendingFormData ? 'yes' : 'no');
         
         if (pendingFormData) {
-          // Clear the pending data
-          internetIdentityRegistrationService.clearPendingRegistration();
+          // Log full form data for debugging
+          console.log('🎯 InternetIdentityService: Full form data details:');
+          Object.keys(pendingFormData).forEach(key => {
+            console.log(`  - ${key}: ${pendingFormData[key]}`);
+          });
+          
+          // Get additional identity information
+          const principal = this.getPrincipal();
+          const anchor = await this.getIdentityAnchor();
+          
+          console.log('🔑 InternetIdentityService: Principal:', principal);
+          console.log('⚓ InternetIdentityService: Anchor:', anchor);
+          
+          // Ensure a session exists for this authentication
+          if (!this.sessions.has(principal)) {
+            console.log('🔄 InternetIdentityService: Creating missing session for authenticated user');
+            const sessionInfo = {
+              principal,
+              userInfo: null, // Will be populated after institution registration
+              identity: this.identity,
+              actor: this.actor,
+              loginTime: new Date(),
+              anchor: anchor
+            };
+            this.sessions.set(principal, sessionInfo);
+          }
+          
+          // DON'T clear the pending data yet - wait until successful submission
+          // internetIdentityRegistrationService.clearPendingRegistration();
           
           return {
             success: true,
             formData: pendingFormData,
             identity: this.identity,
-            principal: this.getPrincipal(),
-            anchor: await this.getIdentityAnchor()
+            principal: principal,
+            anchor: anchor
           };
+        } else {
+          console.log('❌ InternetIdentityService: No pending form data found');
         }
+      } else {
+        console.log('❌ InternetIdentityService: User is not authenticated');
       }
       
       return null;
     } catch (error) {
-      console.error('Error checking for pending institution registration:', error);
+      console.error('❌ InternetIdentityService: Error checking for pending institution registration:', error);
       return null;
     }
   }

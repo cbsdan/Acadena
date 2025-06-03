@@ -12,6 +12,7 @@ import {
 
 // Import services
 import { internetIdentityService } from './services/InternetIdentityService';
+import { Acadena_backend } from 'declarations/Acadena_backend';
 
 // Import components
 import {
@@ -37,7 +38,8 @@ function App() {
     loading,
     setLoading,
     handleLogin,
-    handleLogout
+    handleLogout,
+    loadCurrentUser
   } = useAuth();
 
   // Add showLandingPage state - this will control whether to show landing page or app
@@ -155,23 +157,98 @@ function App() {
           if (pendingResult && pendingResult.success) {
             console.log('Found pending institution registration:', pendingResult);
             
-            // Restore institution form data and continue registration
-            setInstitutionWithAdminForm(prevForm => ({
-              ...pendingResult.formData,
-              // Keep any existing form data that wasn't in the saved data
-              ...prevForm,
-              // Override with saved data
-              ...pendingResult.formData
-            }));
-            
-            // Navigate to registration completion
-            setShowLandingPage(false);
-            setCurrentView('register-institution');
-            
-            // Show success notification
-            const message = `Internet Identity created successfully!\n\nIdentity Anchor: ${pendingResult.anchor}\nPrincipal: ${pendingResult.principal}\n\nContinuing with institution registration...`;
-            alert(message);
-            return; // Exit early since we handled the case
+            // Validate the formData before using it
+            if (pendingResult.formData) {
+              console.log('Form data found in pending result. Creating deep copy...');
+              // Create a deep copy of the form data to avoid reference issues
+              const formDataCopy = JSON.parse(JSON.stringify(pendingResult.formData));
+              
+              console.log('Setting institution form data:', formDataCopy);
+              // Set the form data directly instead of using a function with prevForm
+              setInstitutionWithAdminForm(formDataCopy);
+              
+              // Navigate to registration completion
+              setShowLandingPage(false);
+              setCurrentView('register-institution');
+              
+              // Show success notification
+              const message = `Internet Identity created successfully!\n\nIdentity Anchor: ${pendingResult.anchor}\nPrincipal: ${pendingResult.principal}\n\nContinuing with institution registration...`;
+              alert(message);
+              
+              // Automatically submit the form after a short delay
+              setTimeout(() => {
+                console.log('Auto-submitting institution registration with restored data');
+                console.log('Current form data before auto-submit:', institutionWithAdminForm);
+                
+                // Use the dedicated method for submitting after II creation
+                const submitWithFormData = async () => {
+                  try {
+                    setLoading(true);
+                    // Use the form data from pendingResult instead of state which might not be updated yet
+                    const result = await institutionHandlers.submitInstitutionRegistration(
+                      pendingResult.formData,
+                      loadInstitutions,
+                      loadSystemStatus
+                    );
+                    
+                    if (result.success) {
+                      alert('Institution and admin account created successfully!\n\nThe admin can now log in using Internet Identity to manage students and documents for ' + pendingResult.formData.name + '.');
+                      
+                      // Clear form data
+                      setInstitutionWithAdminForm({
+                        name: '',
+                        institutionType: 'University',
+                        address: '',
+                        contactEmail: '',
+                        contactPhone: '',
+                        accreditationNumber: '',
+                        website: '',
+                        description: '',
+                        adminFirstName: '',
+                        adminLastName: '',
+                        adminEmail: ''
+                      });
+                      
+                      // Clean up localStorage
+                      localStorage.removeItem('pendingInstitutionRegistration');
+                      localStorage.removeItem('expectingNewII');
+                      localStorage.removeItem('registrationInProgress');
+                      
+                      // Navigate to dashboard
+                      setCurrentView('dashboard');
+                      
+                      // Set user data directly from the registration result
+                      console.log('✅ Setting user data directly from registration result:', result.admin);
+                      setUser(result.admin);
+                      setIsAuthenticated(true);
+                      
+                      // Update the session in InternetIdentityService
+                      const principal = internetIdentityService.getPrincipal();
+                      if (principal) {
+                        const currentSession = internetIdentityService.getSession(principal);
+                        if (currentSession) {
+                          currentSession.userInfo = result.admin;
+                          console.log('✅ Updated session with admin user data');
+                        }
+                      }
+                    } else {
+                      alert('Institution registration failed: ' + result.error);
+                    }
+                  } catch (error) {
+                    console.error('Error in submitWithFormData:', error);
+                    alert('Error creating institution: ' + error.message);
+                  } finally {
+                    setLoading(false);
+                  }
+                };
+                
+                submitWithFormData();
+              }, 2000);
+              
+              return; // Exit early since we handled the case
+            } else {
+              console.error('No form data found in pending result');
+            }
           } else {
             // No pending registration found, but user authenticated
             // This might be a returning user or new user without registration
@@ -189,6 +266,7 @@ function App() {
           const pendingResult = await internetIdentityService.checkForPendingInstitutionRegistration();
           if (pendingResult && pendingResult.success) {
             // Handle case where pending data exists from previous session
+            console.log('Found pending registration from previous session:', pendingResult);
             setInstitutionWithAdminForm(prevForm => ({
               ...pendingResult.formData,
               ...prevForm,
@@ -196,6 +274,75 @@ function App() {
             }));
             setShowLandingPage(false);
             setCurrentView('register-institution');
+            
+            // Auto-submit after restoring data
+            setTimeout(() => {
+              console.log('Auto-submitting institution registration with restored data from previous session');
+              
+              // Use the dedicated method for submitting after II creation
+              const submitWithFormData = async () => {
+                try {
+                  setLoading(true);
+                  const result = await institutionHandlers.submitInstitutionRegistration(
+                    pendingResult.formData,
+                    loadInstitutions,
+                    loadSystemStatus
+                  );
+                  
+                  if (result.success) {
+                    alert('Institution and admin account created successfully!\n\nThe admin can now log in using Internet Identity to manage students and documents for ' + pendingResult.formData.name + '.');
+                    
+                    // Clear form data
+                    setInstitutionWithAdminForm({
+                      name: '',
+                      institutionType: 'University',
+                      address: '',
+                      contactEmail: '',
+                      contactPhone: '',
+                      accreditationNumber: '',
+                      website: '',
+                      description: '',
+                      adminFirstName: '',
+                      adminLastName: '',
+                      adminEmail: ''
+                    });
+                    
+                    // Clean up localStorage
+                    localStorage.removeItem('pendingInstitutionRegistration');
+                    localStorage.removeItem('expectingNewII');
+                    localStorage.removeItem('registrationInProgress');
+                    
+                    // Navigate to dashboard
+                    setCurrentView('dashboard');
+                    
+                    // Set user data directly from the registration result
+                    console.log('✅ Setting user data directly from registration result:', result.admin);
+                    setUser(result.admin);
+                    setIsAuthenticated(true);
+                    
+                    // Update the session in InternetIdentityService
+                    const principal = internetIdentityService.getPrincipal();
+                    if (principal) {
+                      const currentSession = internetIdentityService.getSession(principal);
+                      if (currentSession) {
+                        currentSession.userInfo = result.admin;
+                        console.log('✅ Updated session with admin user data');
+                      }
+                    }
+                  } else {
+                    alert('Institution registration failed: ' + result.error);
+                  }
+                } catch (error) {
+                  console.error('Error in submitWithFormData:', error);
+                  alert('Error creating institution: ' + error.message);
+                } finally {
+                  setLoading(false);
+                }
+              };
+              
+              submitWithFormData();
+            }, 1000);
+            
           } else if (user) {
             // Authenticated user with data
             setShowLandingPage(false);
@@ -240,7 +387,43 @@ function App() {
     setDocuments([]);
   };
 
-  // ...rest of your existing handler functions...
+  // Enhanced handler for institution registration from setup screen
+  const handleRegisterInstitutionFromSetup = () => {
+    console.log('Starting institution registration from Account Setup Required screen');
+    console.log('Current auth state:', { isAuthenticated, user: !!user });
+    
+    // Check if there's pending registration data
+    const pendingData = localStorage.getItem('pendingInstitutionRegistration');
+    if (pendingData) {
+      try {
+        const parsed = JSON.parse(pendingData);
+        const isExpired = (Date.now() - parsed.timestamp) > (30 * 60 * 1000);
+        
+        if (!isExpired && parsed.formData) {
+          console.log('Found valid pending registration data, restoring form');
+          setInstitutionWithAdminForm(parsed.formData);
+          setCurrentView('register-institution');
+          
+          // Show message about restored data
+          setTimeout(() => {
+            alert('Your previous form data has been restored. Please review and submit to complete registration.');
+          }, 500);
+          return;
+        } else if (isExpired) {
+          console.log('Pending registration data has expired, clearing');
+          localStorage.removeItem('pendingInstitutionRegistration');
+        }
+      } catch (error) {
+        console.error('Error parsing pending registration data:', error);
+        localStorage.removeItem('pendingInstitutionRegistration');
+      }
+    }
+    
+    // No pending data, start fresh
+    console.log('No valid pending data, starting fresh registration');
+    setCurrentView('register-institution');
+  };
+
   const handleInstitutionWithAdminSubmit = (e) => {
     return institutionHandlers.handleInstitutionWithAdminSubmit(
       e,
@@ -251,6 +434,178 @@ function App() {
       loadSystemStatus,
       setCurrentView
     );
+  };
+
+  // Auto-submission function that bypasses event handling
+  const autoSubmitInstitutionRegistration = async () => {
+    console.log('🎯 Auto-submitting institution registration...');
+    console.log('📋 Current form data:', institutionWithAdminForm);
+    
+    // Safety check: Try to get form data from localStorage if current state is empty
+    if (!institutionWithAdminForm.name || !institutionWithAdminForm.adminEmail) {
+      console.log('⚠️ Form data appears to be missing, attempting to retrieve from localStorage...');
+      try {
+        const pendingData = localStorage.getItem('pendingInstitutionRegistration');
+        if (pendingData) {
+          const parsed = JSON.parse(pendingData);
+          if (parsed.formData) {
+            console.log('✅ Retrieved form data from localStorage:', parsed.formData);
+            // Set the form data directly
+            setInstitutionWithAdminForm(parsed.formData);
+            // Return early and call this function again after a delay
+            setTimeout(() => {
+              console.log('🔄 Retrying auto-submit with retrieved form data');
+              autoSubmitInstitutionRegistration();
+            }, 1000);
+            return;
+          }
+        }
+      } catch (error) {
+        console.error('❌ Error retrieving form data from localStorage:', error);
+      }
+    }
+    
+    setLoading(true);
+    
+    try {
+      // Validate all required fields are present and non-empty
+      const requiredFields = [
+        'name', 'institutionType', 'address', 'contactEmail', 
+        'contactPhone', 'accreditationNumber', 'adminFirstName', 
+        'adminLastName', 'adminEmail'
+      ];
+      
+      const missingFields = requiredFields.filter(field => 
+        !institutionWithAdminForm[field] || 
+        typeof institutionWithAdminForm[field] === 'string' && institutionWithAdminForm[field].trim() === ''
+      );
+      
+      if (missingFields.length > 0) {
+        console.error('❌ Missing required fields:', missingFields);
+        alert(`Institution registration failed: Missing required fields - ${missingFields.join(', ')}`);
+        setLoading(false);
+        return;
+      }
+      
+      // Check for duplicate accreditation number before submission
+      console.log('🔍 Checking for duplicate accreditation number:', institutionWithAdminForm.accreditationNumber);
+      const isDuplicate = await institutionHandlers.checkAccreditationNumberExists(
+        institutionWithAdminForm.accreditationNumber
+      );
+      
+      if (isDuplicate) {
+        console.error('❌ Duplicate accreditation number found');
+        alert('Institution registration failed: An institution with this accreditation number already exists. Please use a different accreditation number.');
+        setLoading(false);
+        return;
+      }
+      
+      const institutionType = { [institutionWithAdminForm.institutionType]: null };
+      console.log('🏛️ Creating institution with type:', institutionType);
+      console.log('📞 Backend call parameters:', {
+        name: institutionWithAdminForm.name,
+        type: institutionType,
+        address: institutionWithAdminForm.address,
+        contactEmail: institutionWithAdminForm.contactEmail,
+        contactPhone: institutionWithAdminForm.contactPhone,
+        accreditationNumber: institutionWithAdminForm.accreditationNumber,
+        website: institutionWithAdminForm.website && institutionWithAdminForm.website.trim() !== '' ? institutionWithAdminForm.website : null,
+        description: institutionWithAdminForm.description && institutionWithAdminForm.description.trim() !== '' ? institutionWithAdminForm.description : null,
+        adminFirstName: institutionWithAdminForm.adminFirstName,
+        adminLastName: institutionWithAdminForm.adminLastName,
+        adminEmail: institutionWithAdminForm.adminEmail
+      });
+      
+      const result = await Acadena_backend.registerInstitutionWithAdmin(
+        institutionWithAdminForm.name,
+        institutionType,
+        institutionWithAdminForm.address,
+        institutionWithAdminForm.contactEmail,
+        institutionWithAdminForm.contactPhone,
+        institutionWithAdminForm.accreditationNumber,
+        institutionWithAdminForm.website && institutionWithAdminForm.website.trim() !== '' ? [institutionWithAdminForm.website] : [],
+        institutionWithAdminForm.description && institutionWithAdminForm.description.trim() !== '' ? [institutionWithAdminForm.description] : [],
+        institutionWithAdminForm.adminFirstName,
+        institutionWithAdminForm.adminLastName,
+        institutionWithAdminForm.adminEmail
+      );
+
+      console.log('📥 Backend response:', result);
+
+      if ('ok' in result) {
+        console.log('✅ Institution and admin created successfully!');
+        alert('Institution and admin account created successfully!\n\nThe admin can now log in using Internet Identity to manage students and documents for ' + institutionWithAdminForm.name + '.');
+        
+        // Clear form data
+        setInstitutionWithAdminForm({
+          name: '',
+          institutionType: 'University',
+          address: '',
+          contactEmail: '',
+          contactPhone: '',
+          accreditationNumber: '',
+          website: '',
+          description: '',
+          adminFirstName: '',
+          adminLastName: '',
+          adminEmail: ''
+        });
+        
+        // Reload data
+        await loadInstitutions();
+        await loadSystemStatus();
+        
+        
+        // Clean up localStorage
+        localStorage.removeItem('pendingInstitutionRegistration');
+        localStorage.removeItem('expectingNewII');
+        localStorage.removeItem('registrationInProgress');
+        
+        // Navigate to dashboard
+        setCurrentView('dashboard');
+        
+        // Extract admin user data from the result
+        const adminUser = result.ok[1];
+        
+        // Set user data directly from the registration result
+        console.log('✅ Setting user data directly from institution registration result:', adminUser);
+        setUser(adminUser);
+        setIsAuthenticated(true);
+        
+        // Update the session in InternetIdentityService
+        const principal = internetIdentityService.getPrincipal();
+        if (principal) {
+          const currentSession = internetIdentityService.getSession(principal);
+          if (currentSession) {
+            currentSession.userInfo = adminUser;
+            console.log('✅ Updated session with admin user data');
+          }
+        }
+        
+      } else {
+        // Provide more user-friendly error messages
+        let errorMessage = 'Error creating institution: ';
+        if (result.err && typeof result.err === 'object') {
+          if ('AlreadyExists' in result.err) {
+            errorMessage = 'Institution registration failed: An institution with this accreditation number already exists. Please use a different accreditation number.';
+          } else if ('InvalidInput' in result.err) {
+            errorMessage = 'Institution registration failed: Please check that all required fields are filled correctly.';
+          } else if ('Unauthorized' in result.err) {
+            errorMessage = 'Institution registration failed: Authentication error. Please try logging in again.';
+          } else {
+            errorMessage += JSON.stringify(result.err);
+          }
+        } else {
+          errorMessage += JSON.stringify(result.err);
+        }
+        alert(errorMessage);
+      }
+    } catch (error) {
+      console.error('Error creating institution:', error);
+      alert('Error creating institution: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleStudentSubmit = (e) => {
@@ -397,7 +752,7 @@ function App() {
             <p>You are authenticated but your account is not set up yet.</p>
             <p>Would you like to register an institution or claim an invitation?</p>
             <div className="setup-options">
-              <button onClick={() => setCurrentView('register-institution')}>
+              <button onClick={handleRegisterInstitutionFromSetup}>
                 Register Institution
               </button>
               <button onClick={() => setCurrentView('claim-invitation')}>

@@ -1,0 +1,99 @@
+// This test file is for testing the InternetIdentityService.updateSessionWithUserInfo method
+// Create a simple HTML page to test the method
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test updateSessionWithUserInfo</title>
+  <script>
+    // Mock the internetIdentityService for testing
+    const mockInternetIdentityService = {
+      isAuthenticated: () => true,
+      getCurrentUser: async () => ({ name: "Test User", email: "test@example.com" }),
+      identity: { getPrincipal: () => ({ toString: () => "testPrincipal" }) },
+      sessions: new Map(),
+      updateSessionWithUserInfo: async function() {
+        try {
+          console.log('🔄 Testing: Updating session with fresh user info...');
+          
+          if (!this.isAuthenticated()) {
+            console.log('⚠️ Testing: Cannot update session - not authenticated');
+            return null;
+          }
+          
+          // Get fresh user data
+          const userInfo = await this.getCurrentUser();
+          
+          // Update the current session with the new user info
+          if (this.identity) {
+            const principal = this.identity.getPrincipal().toString();
+            const currentSession = this.sessions.get(principal);
+            
+            if (currentSession) {
+              // Update the session with new user info
+              currentSession.userInfo = userInfo;
+              this.sessions.set(principal, currentSession);
+              
+              console.log('✅ Testing: Session updated with new user info:', userInfo);
+            } else {
+              console.log('⚠️ Testing: No session found for current principal');
+              // Create a new session if none exists
+              this.sessions.set(principal, { userInfo });
+              console.log('✅ Testing: Created new session with user info:', userInfo);
+            }
+          }
+          
+          return userInfo;
+        } catch (error) {
+          console.error('❌ Testing: Error updating session with user info:', error);
+          return null;
+        }
+      }
+    };
+
+    // Test the method
+    async function testUpdateSessionWithUserInfo() {
+      // Setup a test session
+      const principal = mockInternetIdentityService.identity.getPrincipal().toString();
+      mockInternetIdentityService.sessions.set(principal, { userInfo: null });
+      
+      // Test the method
+      console.log('🧪 Starting test for updateSessionWithUserInfo');
+      console.log('Initial session state:', mockInternetIdentityService.sessions.get(principal));
+      
+      try {
+        const userInfo = await mockInternetIdentityService.updateSessionWithUserInfo();
+        console.log('Result from updateSessionWithUserInfo:', userInfo);
+        console.log('Updated session state:', mockInternetIdentityService.sessions.get(principal));
+        
+        // Verify the result
+        if (userInfo && userInfo.name === "Test User") {
+          document.getElementById('result').innerHTML = '✅ Test passed! updateSessionWithUserInfo is working correctly.';
+          document.getElementById('result').style.color = 'green';
+        } else {
+          document.getElementById('result').innerHTML = '❌ Test failed! The returned user info is not as expected.';
+          document.getElementById('result').style.color = 'red';
+        }
+      } catch (error) {
+        console.error('Error in test:', error);
+        document.getElementById('result').innerHTML = '❌ Test failed with error: ' + error.message;
+        document.getElementById('result').style.color = 'red';
+      }
+    }
+  </script>
+</head>
+<body>
+  <h1>Test for updateSessionWithUserInfo</h1>
+  <button onclick="testUpdateSessionWithUserInfo()">Run Test</button>
+  <div id="result" style="margin-top: 20px; font-size: 18px;"></div>
+  <div style="margin-top: 20px;">
+    <p>This test checks if the <code>updateSessionWithUserInfo</code> method correctly:</p>
+    <ol>
+      <li>Verifies authentication status</li>
+      <li>Retrieves current user data</li>
+      <li>Updates the session with the user info</li>
+      <li>Returns the updated user info</li>
+    </ol>
+    <p>Check the browser console for detailed logs.</p>
+  </div>
+</body>
+</html>

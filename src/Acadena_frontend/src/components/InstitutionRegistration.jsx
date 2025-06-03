@@ -70,6 +70,31 @@ const InstitutionRegistration = ({
     return () => clearTimeout(timeoutId);
   };
 
+  // Helper function to generate unique accreditation number suggestions
+  const generateUniqueAccreditationNumber = async () => {
+    const prefix = institutionWithAdminForm.name
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase())
+      .join('')
+      .substring(0, 4);
+    
+    const timestamp = Date.now().toString().slice(-6);
+    const suggested = `${prefix}-${timestamp}`;
+    
+    // Check if this suggestion is unique
+    const isDuplicate = await institutionHandlers.checkAccreditationNumberExists(suggested);
+    
+    if (!isDuplicate) {
+      setInstitutionWithAdminForm({
+        ...institutionWithAdminForm,
+        accreditationNumber: suggested
+      });
+      
+      // Trigger validation for the new number
+      validateAccreditationNumber(suggested);
+    }
+  };
+
   // Validate form before showing Internet Identity modal
   const validateForm = () => {
     const requiredFields = [
@@ -294,6 +319,14 @@ const InstitutionRegistration = ({
                   required
                   placeholder="Enter accreditation number"
                 />
+                <button 
+                  type="button" 
+                  onClick={generateUniqueAccreditationNumber}
+                  className="generate-button"
+                  title="Generate unique accreditation number"
+                >
+                  Generate
+                </button>
                 {accreditationValidation.isChecking && (
                   <div className="validation-indicator checking">
                     <div className="spinner-small"></div>

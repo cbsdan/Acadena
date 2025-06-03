@@ -9,43 +9,43 @@ import Array "mo:base/Array";
 import Types "./Types";
 
 module Users {
-  
+
   public type User = Types.User;
   public type UserId = Types.UserId;
   public type UserRole = Types.UserRole;
   public type Error = Types.Error;
-  
+
   public class UserService(
-    users: Map.HashMap<UserId, User>,
-    principalToUser: Map.HashMap<Principal, UserId>,
-    nextUserId: () -> Nat,
-    incrementUserId: () -> ()
+    users : Map.HashMap<UserId, User>,
+    principalToUser : Map.HashMap<Principal, UserId>,
+    nextUserId : () -> Nat,
+    incrementUserId : () -> (),
   ) {
-    
+
     public func registerUser(
-      caller: Principal,
-      email: Text,
-      firstName: Text,
-      lastName: Text,
-      role: UserRole
+      caller : Principal,
+      email : Text,
+      firstName : Text,
+      lastName : Text,
+      role : UserRole,
     ) : async Result.Result<User, Error> {
       // Use the actual caller principal from Internet Identity
-      
+
       // Check if user already exists
       switch (principalToUser.get(caller)) {
         case (?_) { return #err(#AlreadyExists) };
-        case null { };
+        case null {};
       };
-      
+
       // Validate input
       if (Text.size(email) == 0 or Text.size(firstName) == 0 or Text.size(lastName) == 0) {
         return #err(#InvalidInput);
       };
-      
+
       let userId = "USER_" # Nat.toText(nextUserId());
       incrementUserId();
-      
-      let user: User = {
+
+      let user : User = {
         id = userId;
         principal = caller;
         role = role;
@@ -56,22 +56,22 @@ module Users {
         lastLoginDate = null;
         isActive = true;
       };
-      
+
       users.put(userId, user);
       principalToUser.put(caller, userId);
-      
-      #ok(user)
+
+      #ok(user);
     };
-    
-    public func getCurrentUserInfo(caller: Principal) : async ?User {
+
+    public func getCurrentUserInfo(caller : Principal) : async ?User {
       // Use the actual caller principal from Internet Identity
       switch (principalToUser.get(caller)) {
         case (?userId) { users.get(userId) };
         case null { null };
-      }
+      };
     };
-    
-    public func getAllUsers(caller: Principal) : async Result.Result<[User], Error> {
+
+    public func getAllUsers(caller : Principal) : async Result.Result<[User], Error> {
       // Check authentication and authorization - only system admins can view all users
       switch (principalToUser.get(caller)) {
         case (?userId) {
@@ -82,16 +82,28 @@ module Users {
                   // System admin can view all users
                   let usersArray = Iter.toArray(users.entries());
                   let allUsers = Array.map<(UserId, User), User>(usersArray, func((_, user)) = user);
-                  #ok(allUsers)
+                  #ok(allUsers);
                 };
                 case (_) { #err(#Unauthorized) };
-              }
+              };
             };
             case null { #err(#Unauthorized) };
-          }
+          };
         };
         case null { #err(#Unauthorized) };
-      }
+      };
     };
-  }
-}
+
+    public func getAllUsersWithoutAdmin(caller : Principal) : async Result.Result<[User], Error> {
+      // Simply check if the caller is registered (no role check)
+      switch (principalToUser.get(caller)) {
+        case (?_) {
+          let usersArray = Iter.toArray(users.entries());
+          let allUsers = Array.map<(UserId, User), User>(usersArray, func((_, user)) = user);
+          #ok(allUsers);
+        };
+        case null { #err(#Unauthorized) }; // Reject unregistered users
+      };
+    };
+  };
+};

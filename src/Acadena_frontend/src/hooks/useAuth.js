@@ -16,18 +16,30 @@ export const useAuth = () => {
         const userInfo = await internetIdentityService.getCurrentUser();
         const sessionInfo = internetIdentityService.getCurrentSession();
         
-        if (userInfo || sessionInfo) {
-          setUser(userInfo);
-          setCurrentSession(sessionInfo);
-          setIsAuthenticated(true);
-          updateSessions();
-          console.log('useAuth: User authenticated successfully');
-          return userInfo;
+        // Set authentication state even if user data is null (new user case)
+        setUser(userInfo);
+        setCurrentSession(sessionInfo);
+        setIsAuthenticated(true);
+        updateSessions();
+        
+        if (userInfo) {
+          console.log('useAuth: User authenticated with data:', userInfo);
+        } else {
+          console.log('useAuth: User authenticated but no user data (new user)');
         }
+        
+        return userInfo;
+      } else {
+        console.log('useAuth: User not authenticated');
+        setIsAuthenticated(false);
+        setUser(null);
+        setCurrentSession(null);
       }
     } catch (error) {
-      console.log('useAuth: User not authenticated:', error);
+      console.log('useAuth: Authentication check failed:', error);
       setIsAuthenticated(false);
+      setUser(null);
+      setCurrentSession(null);
     }
     return null;
   };
@@ -111,6 +123,39 @@ export const useAuth = () => {
     return await internetIdentityService.getIdentityAnchor();
   };
 
+  // Function to reload current user data
+  const loadCurrentUser = async () => {
+    try {
+      if (internetIdentityService.isAuthenticated()) {
+        console.log('🔄 loadCurrentUser: Reloading user data...');
+        console.log('🔑 Current principal:', internetIdentityService.getPrincipal());
+        console.log('🔑 Has current identity:', !!internetIdentityService.getIdentity());
+        
+        // Check if we have a session before attempting to update
+        const currentSession = internetIdentityService.getCurrentSession();
+        console.log('🔍 Current session exists:', !!currentSession);
+        
+        // Use the new updateSessionWithUserInfo method to refresh user data in both session and auth state
+        const userInfo = await internetIdentityService.updateSessionWithUserInfo();
+        
+        if (userInfo) {
+          console.log('✅ loadCurrentUser: User data reloaded successfully:', userInfo);
+          setUser(userInfo);
+          return userInfo;
+        } else {
+          console.log('⚠️ loadCurrentUser: No user data found after reload');
+          // Still update the user state with null to ensure consistent state
+          setUser(null);
+        }
+      } else {
+        console.log('⚠️ loadCurrentUser: Not authenticated, cannot reload user data');
+      }
+    } catch (error) {
+      console.error('❌ loadCurrentUser: Failed to reload user data:', error);
+    }
+    return null;
+  };
+
   useEffect(() => {
     checkAuthentication();
   }, []);
@@ -125,6 +170,7 @@ export const useAuth = () => {
     handleLogin,
     handleLogout,
     checkAuthentication,
+    loadCurrentUser,
     
     // Multi-user functionality
     sessions,
