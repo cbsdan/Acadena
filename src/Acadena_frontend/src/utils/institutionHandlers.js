@@ -145,7 +145,7 @@ export const institutionHandlers = {
     setLoading, 
     loadInstitutions, 
     loadSystemStatus, 
-    setCurrentView
+    navigate
   ) => {
     e.preventDefault();
     setLoading(true);
@@ -229,7 +229,7 @@ export const institutionHandlers = {
         });
         await loadInstitutions();
         await loadSystemStatus();
-        setCurrentView('login');
+        navigate('/login');
       } else {
         // Provide more user-friendly error messages
         let errorMessage = 'Error creating institution: ';

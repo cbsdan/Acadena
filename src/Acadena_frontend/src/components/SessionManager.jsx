@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import './assets/styles/style.css';
 
-const SessionManager = ({ setCurrentView }) => {
+const SessionManager = () => {
+  const navigate = useNavigate();
   const {
     sessions,
     currentSession,
@@ -292,7 +294,7 @@ const SessionManager = ({ setCurrentView }) => {
             {/* Navigation */}
             <div className="auth-actions" style={{ marginTop: '2rem' }}>
               <button 
-                onClick={() => setCurrentView('login')}
+                onClick={() => navigate('/login')}
                 className="secondary-button"
               >
                 ← Back to Login

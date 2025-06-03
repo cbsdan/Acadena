@@ -186,6 +186,10 @@ actor Acadena {
   public shared(msg) func getAllUsers() : async Result.Result<[User], Error> {
     await userService.getAllUsers(msg.caller)
   };
+
+  public shared(msg) func getAllUsersWithoutAdmin() : async Result.Result<[User], Error> {
+    await userService.getAllUsersWithoutAdmin(msg.caller)
+  };
   
   // Institution Management Functions
   public shared(msg) func registerInstitutionWithAdmin(

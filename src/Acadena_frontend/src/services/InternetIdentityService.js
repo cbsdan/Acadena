@@ -22,23 +22,26 @@ class InternetIdentityService {
 
     if (await this.authClient.isAuthenticated()) {
       this.identity = this.authClient.getIdentity();
-      this.actor = this.createAuthenticatedActor();
+      this.actor = await this.createAuthenticatedActor();
     }
 
     return this.authClient;
   }
 
-  createAuthenticatedActor() {
+  async createAuthenticatedActor() {
     const agent = new HttpAgent({
       identity: this.identity,
       ...(this.isLocalNetwork && { host: 'http://localhost:4943' })
     });
 
     if (this.isLocalNetwork) {
-      agent.fetchRootKey().catch(err => {
+      try {
+        await agent.fetchRootKey();
+        console.log('✅ Root key fetched successfully for local development');
+      } catch (err) {
         console.warn('Unable to fetch root key. Check to ensure that your local replica is running');
         console.error(err);
-      });
+      }
     }
 
     return createActor(process.env.CANISTER_ID_ACADENA_BACKEND, {
@@ -59,7 +62,7 @@ class InternetIdentityService {
         maxTimeToLive: BigInt(7 * 24 * 60 * 60 * 1000 * 1000 * 1000), // 7 days
         onSuccess: async () => {
           this.identity = this.authClient.getIdentity();
-          this.actor = this.createAuthenticatedActor();
+          this.actor = await this.createAuthenticatedActor();
           
           // Get user info from backend
           try {
@@ -99,16 +102,38 @@ class InternetIdentityService {
   }
 
   async logout() {
-    if (!this.authClient) return;
+    console.log('🚪 InternetIdentityService.logout: Starting logout process...');
+    
+    if (!this.authClient) {
+      console.log('🚪 InternetIdentityService.logout: No authClient, logout skipped');
+      return;
+    }
 
     const principal = this.identity?.getPrincipal().toString();
+    console.log('🚪 InternetIdentityService.logout: Current principal:', principal);
+    
     if (principal) {
+      console.log('🚪 InternetIdentityService.logout: Removing session for principal:', principal);
       this.sessions.delete(principal);
     }
 
-    await this.authClient.logout();
+    // Clear local state first
+    console.log('🚪 InternetIdentityService.logout: Clearing local state...');
     this.identity = null;
     this.actor = null;
+    
+    // Clear all sessions
+    console.log('🚪 InternetIdentityService.logout: Clearing all sessions...');
+    this.sessions.clear();
+    
+    // Then logout from authClient
+    console.log('🚪 InternetIdentityService.logout: Calling authClient.logout()...');
+    await this.authClient.logout();
+    console.log('🚪 InternetIdentityService.logout: authClient.logout() completed');
+    
+    // Verify logout
+    const stillAuthenticated = await this.authClient.isAuthenticated();
+    console.log('🚪 InternetIdentityService.logout: AuthClient still authenticated after logout:', stillAuthenticated);
   }
 
   async getCurrentUser() {
@@ -179,8 +204,21 @@ class InternetIdentityService {
     return Math.abs(hash % 90000) + 10000; // Generate anchor between 10000-99999
   }
 
-  isAuthenticated() {
-    return this.authClient?.isAuthenticated() || false;
+  async isAuthenticated() {
+    // Check both authClient state and local identity state
+    const authClientAuth = await this.authClient?.isAuthenticated();
+    const hasIdentity = !!this.identity;
+    const result = !!(authClientAuth && hasIdentity);
+    
+    // Add some debugging
+    if (authClientAuth !== hasIdentity) {
+      console.log('🔍 InternetIdentityService.isAuthenticated: Mismatch detected!');
+      console.log('  - AuthClient authenticated:', authClientAuth);
+      console.log('  - Has identity:', hasIdentity);
+      console.log('  - Final result:', result);
+    }
+    
+    return result;
   }
 
   getIdentity() {
@@ -247,7 +285,7 @@ class InternetIdentityService {
     try {
       console.log('🔄 InternetIdentityService: Updating session with fresh user info...');
       
-      if (!this.isAuthenticated()) {
+      if (!(await this.isAuthenticated())) {
         console.log('⚠️ InternetIdentityService: Cannot update session - not authenticated');
         return null;
       }
@@ -300,7 +338,7 @@ class InternetIdentityService {
   async loginWithNewIdentity(identity, anchor) {
     // Store the new identity and create actor
     this.identity = identity;
-    this.actor = this.createAuthenticatedActor();
+    this.actor = await this.createAuthenticatedActor();
     
     // Store session info
     const principal = identity.getPrincipal().toString();
@@ -331,7 +369,7 @@ class InternetIdentityService {
       console.log('🔍 InternetIdentityService: Checking for pending registration...');
       
       // Check if user is authenticated and has pending registration
-      if (this.isAuthenticated()) {
+      if (await this.isAuthenticated()) {
         console.log('✅ InternetIdentityService: User is authenticated');
         const pendingFormData = internetIdentityRegistrationService.checkForPendingRegistration();
         console.log('📋 InternetIdentityService: Pending form data retrieved:', pendingFormData ? 'yes' : 'no');

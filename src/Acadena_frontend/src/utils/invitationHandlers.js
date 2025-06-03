@@ -6,7 +6,7 @@ export const invitationHandlers = {
     invitationCodeForm,
     setInvitationCodeForm,
     setLoading,
-    setCurrentView
+    navigate
   ) => {
     e.preventDefault();
     setLoading(true);
@@ -41,7 +41,7 @@ export const invitationHandlers = {
       if ('ok' in result) {
         alert('Account successfully claimed! You can now log in with your Internet Identity.');
         setInvitationCodeForm({ code: '' });
-        setCurrentView('login');
+        navigate('/login');
       } else {
         alert('Error claiming invitation code: ' + JSON.stringify(result.err));
       }

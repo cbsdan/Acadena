@@ -12,7 +12,7 @@ export const useAuth = () => {
     try {
       await internetIdentityService.init();
       
-      if (internetIdentityService.isAuthenticated()) {
+      if (await internetIdentityService.isAuthenticated()) {
         const userInfo = await internetIdentityService.getCurrentUser();
         const sessionInfo = internetIdentityService.getCurrentSession();
         
@@ -25,7 +25,7 @@ export const useAuth = () => {
         if (userInfo) {
           console.log('useAuth: User authenticated with data:', userInfo);
         } else {
-          console.log('useAuth: User authenticated but no user data (new user)');
+          console.log('useAuth: User authenticated but no user data (new user):', userInfo);
         }
         
         return userInfo;
@@ -34,12 +34,14 @@ export const useAuth = () => {
         setIsAuthenticated(false);
         setUser(null);
         setCurrentSession(null);
+        updateSessions(); // Update sessions when not authenticated
       }
     } catch (error) {
       console.log('useAuth: Authentication check failed:', error);
       setIsAuthenticated(false);
       setUser(null);
       setCurrentSession(null);
+      updateSessions(); // Update sessions when authentication fails
     }
     return null;
   };
@@ -66,11 +68,22 @@ export const useAuth = () => {
   const handleLogout = async () => {
     setLoading(true);
     try {
+      console.log('🚪 handleLogout: Starting logout process...');
       await internetIdentityService.logout();
+      console.log('🚪 handleLogout: Logout completed, clearing state...');
       setUser(null);
       setCurrentSession(null);
       setIsAuthenticated(false);
       updateSessions();
+      console.log('🚪 handleLogout: State cleared, verifying authentication...');
+      // Double-check authentication state after logout
+      const stillAuthenticated = await internetIdentityService.isAuthenticated();
+      console.log('🚪 handleLogout: Still authenticated after logout:', stillAuthenticated);
+      if (stillAuthenticated) {
+        console.warn('⚠️ handleLogout: Warning - still authenticated after logout, forcing re-check...');
+        // Force a re-check of authentication
+        await checkAuthentication();
+      }
     } catch (error) {
       console.error('Logout failed:', error);
     } finally {
@@ -126,7 +139,7 @@ export const useAuth = () => {
   // Function to reload current user data
   const loadCurrentUser = async () => {
     try {
-      if (internetIdentityService.isAuthenticated()) {
+      if (await internetIdentityService.isAuthenticated()) {
         console.log('🔄 loadCurrentUser: Reloading user data...');
         console.log('🔑 Current principal:', internetIdentityService.getPrincipal());
         console.log('🔑 Has current identity:', !!internetIdentityService.getIdentity());

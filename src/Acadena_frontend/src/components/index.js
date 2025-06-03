@@ -9,3 +9,7 @@ export { default as StudentRegistration } from './StudentRegistration';
 export { default as DocumentManagement } from './DocumentManagement';
 export { default as LandingPage } from './LandingPage';
 export { default as SessionManager } from './SessionManager';
+export { default as ProtectedRoute } from './ProtectedRoute';
+export { default as AccountSetup } from './AccountSetup';
+export { default as AccessDenied } from './AccessDenied';
+export { default as NotFound } from './NotFound';

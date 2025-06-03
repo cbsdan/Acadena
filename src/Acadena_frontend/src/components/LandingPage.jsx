@@ -3,8 +3,11 @@ import './assets/styles/main.css';
 import logoImage from './assets/images/logo.png';
 import landingPageImage from './assets/images/landingpage.png';
 import aboutImage from './assets/images/about.png';
+import { useNavigate } from 'react-router-dom';
 
 const LandingPage = ({ onEnterApp }) => {
+  const navigate = useNavigate();
+
   useEffect(() => {
     const observerOptions = {
       threshold: 0.1,
@@ -45,7 +48,7 @@ const LandingPage = ({ onEnterApp }) => {
         
         <div className="navbar-right">
           <button className="navbar-button" onClick={onEnterApp}>
-            <span>Get Started</span>
+            <span onClick={navigate('/login')}>Get Started</span>
             <svg className="arrow-icon" viewBox="0 0 24 24" fill="none">
               <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
