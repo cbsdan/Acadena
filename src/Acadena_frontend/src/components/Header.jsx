@@ -18,15 +18,6 @@ const Header = ({ handleLogout, isAuthenticated, onNavigateToLanding }) => (
       <div className="header-actions">
         {isAuthenticated && (
           <>
-            <div className="user-info">
-              <div className="user-avatar">
-                <svg viewBox="0 0 24 24" fill="none" className="avatar-icon">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  <circle cx="12" cy="7" r="4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </div>
-              <span className="user-status">Authenticated</span>
-            </div>
             
             <button onClick={handleLogout} className="logout-btn">
               <svg className="logout-icon" viewBox="0 0 24 24" fill="none">

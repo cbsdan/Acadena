@@ -82,6 +82,7 @@ function App() {
     program: '',
     yearLevel: 1
   });
+
 const loadDocumentsByInstitution = useCallback((institutionId) => {
   documentHandlers.fetchDocumentsByInstitution(
     institutionId,
@@ -145,6 +146,7 @@ const [uploadDocumentForm, setUploadDocumentForm] = useState({
       // Error already handled in handleLogin
     }
   };
+
 const handleDocumentUpload = (e) => {
   return documentHandlers.handleDocumentUpload(
     e,
@@ -155,6 +157,7 @@ const handleDocumentUpload = (e) => {
     loadSystemStatus
   );
 };
+
   const handleLogoutWithNav = () => {
     handleLogout();
     setCurrentView('login');
@@ -222,19 +225,228 @@ const handleDocumentUpload = (e) => {
   };
 
   const getNavItems = () => {
-  const items = [{ key: 'dashboard', label: 'Dashboard' }];
-  
-  if (user?.role.InstitutionAdmin) {
-    items.push(
-      { key: 'students', label: 'Register Student' },
-      { key: 'documents', label: 'Issue Document' },
-      { key: 'upload', label: 'Upload Document' } ,
-      { key: 'institution-documents', label: 'Institution Documents' } // <-- Add this line
-    );
-  }
-  
-  return items;
-};
+    const items = [{ key: 'dashboard', label: 'Dashboard', icon: '📊' }];
+    
+    if (user?.role.InstitutionAdmin) {
+      items.push(
+        { key: 'students', label: 'Register Student', icon: '👥' },
+        { key: 'documents', label: 'Issue Document', icon: '📄' },
+        { key: 'upload', label: 'Upload Document', icon: '📤' },
+        { key: 'institution-documents', label: 'Institution Documents', icon: '🏛️' }
+      );
+    }
+    
+    return items;
+  };
+
+  // Enhanced Navigation Component with improved styling
+  const ModernNavigation = ({ navItems, currentView, setCurrentView }) => (
+    <nav style={navStyles.nav}>
+      <div style={navStyles.navContainer}>
+        
+        <div style={navStyles.navItems}>
+          {navItems.map((item) => (
+            <button
+              key={item.key}
+              onClick={() => setCurrentView(item.key)}
+              style={{
+                ...navStyles.navItem,
+                ...(currentView === item.key ? navStyles.navItemActive : {})
+              }}
+              onMouseEnter={(e) => {
+                if (currentView !== item.key) {
+                  Object.assign(e.target.style, navStyles.navItemHover);
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (currentView !== item.key) {
+                  Object.assign(e.target.style, navStyles.navItem);
+                }
+              }}
+            >
+              <span style={navStyles.navItemIcon}>{item.icon}</span>
+              <span style={navStyles.navItemLabel}>{item.label}</span>
+            </button>
+          ))}
+        </div>
+        
+        <div style={navStyles.navProfile}>
+          <div style={navStyles.profileInfo}>
+            <div style={navStyles.profileAvatar}>
+              {user?.firstName?.charAt(0) || 'U'}
+            </div>
+            <div style={navStyles.profileText}>
+              <div style={navStyles.profileName}>
+                {user?.firstName} {user?.lastName}
+              </div>
+              <div style={navStyles.profileRole}>
+                {user?.role?.InstitutionAdmin ? 'Institution Admin' : 'User'}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </nav>
+  );
+
+  // Modern Navigation Styles
+  const navStyles = {
+    nav: {
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+      backdropFilter: 'blur(20px)',
+      border: '1px solid rgba(255, 255, 255, 0.1)',
+      position: 'sticky',
+      top: 0,
+      zIndex: 100,
+      padding: '0',
+      margin: '0'
+    },
+    navContainer: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      padding: '1rem 2rem',
+      maxWidth: '1400px',
+      margin: '0 auto'
+    },
+    navBrand: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '0.75rem',
+      color: 'white',
+      fontWeight: '800',
+      fontSize: '1.25rem'
+    },
+    brandIcon: {
+      fontSize: '1.5rem',
+      background: 'rgba(255, 255, 255, 0.2)',
+      borderRadius: '12px',
+      padding: '0.5rem',
+      backdropFilter: 'blur(10px)'
+    },
+    brandText: {
+      fontFamily: "'Nunito', sans-serif",
+      letterSpacing: '0.5px'
+    },
+    navItems: {
+      display: 'flex',
+      gap: '0.5rem',
+      alignItems: 'center'
+    },
+    navItem: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '0.5rem',
+      padding: '0.75rem 1.25rem',
+      background: 'rgba(255, 255, 255, 0.1)',
+      border: '1px solid rgba(255, 255, 255, 0.2)',
+      borderRadius: '12px',
+      color: 'white',
+      fontSize: '0.9rem',
+      fontWeight: '600',
+      cursor: 'pointer',
+      transition: 'all 0.3s ease',
+      fontFamily: "'Nunito', sans-serif",
+      backdropFilter: 'blur(10px)'
+    },
+    navItemHover: {
+      background: 'rgba(255, 255, 255, 0.2)',
+      transform: 'translateY(-2px)',
+      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)'
+    },
+    navItemActive: {
+      background: 'rgba(255, 255, 255, 0.3)',
+      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
+      transform: 'translateY(-2px)',
+      borderColor: 'rgba(255, 255, 255, 0.4)'
+    },
+    navItemIcon: {
+      fontSize: '1rem'
+    },
+    navItemLabel: {
+      whiteSpace: 'nowrap'
+    },
+    navProfile: {
+      display: 'flex',
+      alignItems: 'center'
+    },
+    profileInfo: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: '0.75rem',
+      padding: '0.5rem 1rem',
+      background: 'rgba(255, 255, 255, 0.1)',
+      borderRadius: '12px',
+      backdropFilter: 'blur(10px)',
+      border: '1px solid rgba(255, 255, 255, 0.2)'
+    },
+    profileAvatar: {
+      width: '36px',
+      height: '36px',
+      borderRadius: '50%',
+      background: 'linear-gradient(135deg, #eb455f 0%, #2b3467 100%)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      color: 'white',
+      fontWeight: '700',
+      fontSize: '0.9rem',
+      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)'
+    },
+    profileText: {
+      color: 'white'
+    },
+    profileName: {
+      fontSize: '0.9rem',
+      fontWeight: '600',
+      lineHeight: '1.2'
+    },
+    profileRole: {
+      fontSize: '0.75rem',
+      opacity: '0.8',
+      fontWeight: '500'
+    }
+  };
+
+  // Responsive styles for mobile
+  const mobileStyles = `
+    @media (max-width: 768px) {
+      .modern-nav-container {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 1rem;
+      }
+      
+      .modern-nav-items {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.5rem;
+      }
+      
+      .modern-nav-item {
+        padding: 0.5rem 1rem;
+        font-size: 0.8rem;
+      }
+      
+      .modern-nav-profile {
+        order: -1;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .modern-nav-items {
+        grid-template-columns: 1fr 1fr;
+        display: grid;
+        gap: 0.5rem;
+        width: 100%;
+      }
+      
+      .modern-nav-item-label {
+        display: none;
+      }
+    }
+  `;
 
   // ...rest of your existing render logic...
   if (!isAuthenticated) {
@@ -277,64 +489,65 @@ const handleDocumentUpload = (e) => {
 
   return (
     <div className="app">
+      <style>{mobileStyles}</style>
       <Header 
         handleLogout={handleLogoutWithNav} 
         isAuthenticated={isAuthenticated} 
       />
 
-      <Navigation 
-        getNavItems={getNavItems}
+      <ModernNavigation 
+        navItems={getNavItems()}
         currentView={currentView}
         setCurrentView={setCurrentView}
       />
 
-    <main className="main-content">
-      {currentView === 'dashboard' && (
-        <Dashboard
-          user={user}
-          systemStatus={systemStatus}
-          students={students}
-          documents={documents}
-          myInvitationCodes={myInvitationCodes}
-        />
-      )}
-      {currentView === 'students' && user?.role.InstitutionAdmin && (
-        <StudentRegistration
-          studentForm={studentForm}
-          setStudentForm={setStudentForm}
-          handleStudentSubmit={handleStudentSubmit}
-          loading={loading}
-        />
-      )}
-      {currentView === 'documents' && user?.role.InstitutionAdmin && (
-        <DocumentManagement
-          documentForm={documentForm}
-          setDocumentForm={setDocumentForm}
-          handleDocumentSubmit={handleDocumentSubmit}
-          students={students}
-          loading={loading}
-        />
-      )}
-      {currentView === 'upload' && user?.role.InstitutionAdmin && (
-        <DocumentUpload
-          uploadForm={uploadDocumentForm}
-          setUploadForm={setUploadDocumentForm}
-          handleDocumentUpload={handleDocumentUpload}
-          students={students}
-          loading={loading}
-        />
-      )}
-     {currentView === 'institution-documents' && user?.role.InstitutionAdmin && (
-  <DocumentPerInstitution
-    institutionId={user?.role?.InstitutionAdmin}
-    documents={institutionDocuments}
-    setDocuments={setInstitutionDocuments}
-    loading={institutionDocumentsLoading}
-    setLoading={setInstitutionDocumentsLoading}
-    loadDocumentsByInstitution={loadDocumentsByInstitution} // <-- Add this line
-  />
-)}
-    </main>
+      <main className="main-content">
+        {currentView === 'dashboard' && (
+          <Dashboard
+            user={user}
+            systemStatus={systemStatus}
+            students={students}
+            documents={documents}
+            myInvitationCodes={myInvitationCodes}
+          />
+        )}
+        {currentView === 'students' && user?.role.InstitutionAdmin && (
+          <StudentRegistration
+            studentForm={studentForm}
+            setStudentForm={setStudentForm}
+            handleStudentSubmit={handleStudentSubmit}
+            loading={loading}
+          />
+        )}
+        {currentView === 'documents' && user?.role.InstitutionAdmin && (
+          <DocumentManagement
+            documentForm={documentForm}
+            setDocumentForm={setDocumentForm}
+            handleDocumentSubmit={handleDocumentSubmit}
+            students={students}
+            loading={loading}
+          />
+        )}
+        {currentView === 'upload' && user?.role.InstitutionAdmin && (
+          <DocumentUpload
+            uploadForm={uploadDocumentForm}
+            setUploadForm={setUploadDocumentForm}
+            handleDocumentUpload={handleDocumentUpload}
+            students={students}
+            loading={loading}
+          />
+        )}
+       {currentView === 'institution-documents' && user?.role.InstitutionAdmin && (
+          <DocumentPerInstitution
+            institutionId={user?.role?.InstitutionAdmin}
+            documents={institutionDocuments}
+            setDocuments={setInstitutionDocuments}
+            loading={institutionDocumentsLoading}
+            setLoading={setInstitutionDocumentsLoading}
+            loadDocumentsByInstitution={loadDocumentsByInstitution}
+          />
+        )}
+      </main>
     </div>
   );
 }
