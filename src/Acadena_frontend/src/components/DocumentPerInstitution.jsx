@@ -214,6 +214,9 @@ const DocumentPerInstitution = ({
                           </svg>
                           <span>{doc.isVerified ? 'Verified' : 'Pending'}</span>
                         </div>
+                          <div className={`status-badge status-${doc.status?.toLowerCase() || 'unknown'}`}>
+                          <span>{doc.status ? doc.status.charAt(0).toUpperCase() + doc.status.slice(1) : 'Unknown'}</span>
+                        </div>
                       </div>
 
                       <div className="document-card-body">
