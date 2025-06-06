@@ -113,23 +113,24 @@ module Types {
     status : Text;
   };
 
-  public type TransactionType = {
-    #DocumentIssue;
-    #DocumentRequest;
-    #DocumentTransfer;
-    #StudentTransfer;
-    #TemporaryAccess;
-  };
+
 
   public type Transaction = {
     id : Text;
-    from : Text; // Institution or Student ID
-    to : Text; // Institution or Student ID
+    from : Principal; // Institution or Student ID
+    to : Principal; // Institution or Student ID
     transactionType : TransactionType;
     documentId : ?DocumentId;
     timestamp : Int;
     status : Text;
     notes : ?Text;
+  };
+
+  public type TransactionType = {
+    #Transfer;
+    #Issue;
+    #Request;
+    #Verification;
   };
 
   public type DocumentRequest = {
@@ -140,7 +141,7 @@ module Types {
     documentType : DocumentType;
     purpose : Text;
     requestDate : Int;
-    status : Text; // "pending", "approved", "rejected"
+    
     expiryDate : ?Int;
   };
 

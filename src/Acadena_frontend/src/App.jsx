@@ -285,7 +285,8 @@ const navigateToApp = () => {
         { key: 'students', label: 'Register Student', icon: '👥' },
         { key: 'documents', label: 'Issue Document', icon: '📄' },
         { key: 'upload', label: 'Upload Document', icon: '📤' },
-        { key: 'institution-documents', label: 'Institution Documents', icon: '🏛️' }
+        { key: 'institution-documents', label: 'Institution Documents', icon: '🏛️' },
+        { key: 'Transferring-of-Students', label: 'Transferring of Students', icon: '↔️' }
       );
     }
     

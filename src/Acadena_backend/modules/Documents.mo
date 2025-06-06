@@ -180,22 +180,22 @@ module Documents {
           documents.put(documentId, newDocument);
 
           // Record transaction (existing code)
-          let transactionId = "TXN_" # Nat.toText(nextTransactionId());
-          incrementTransactionId();
-          let transaction : Transaction = {
-            id = transactionId;
-            from = session.institutionId;
-            to = session.studentId;
-            transactionType = #DocumentIssue;
-            documentId = ?documentId;
-            timestamp = Time.now();
-            status = "completed";
-            notes = ?("Document uploaded: " # session.title);
-          };
-          transactions.put(transactionId, transaction);
+          // let transactionId = "TXN_" # Nat.toText(nextTransactionId());
+          // incrementTransactionId();
+          // let transaction : Transaction = {
+          //   id = transactionId;
+          //   from = session.institutionId;
+          //   to = session.studentId;
+          //   transactionType = #DocumentIssue;
+          //   documentId = ?documentId;
+          //   timestamp = Time.now();
+          //   status = "completed";
+          //   notes = ?("Document uploaded: " # session.title);
+          // };
+          // transactions.put(transactionId, transaction);
 
-          // Remove session
-          uploadSessions.delete(sessionId);
+          // // Remove session
+          // uploadSessions.delete(sessionId);
 
           // --- Generate a token (for example, hash of documentId + signature) ---
           let token = Nat32.toText(Text.hash(documentId # signature));
@@ -205,6 +205,8 @@ module Documents {
         case null { #err(#NotFound) };
       };
     };
+
+    
 
     public func issueDocument(
       studentId : StudentId,
@@ -262,21 +264,21 @@ module Documents {
       documents.put(documentId, newDocument);
 
       // Record transaction
-      let transactionId = "TXN_" # Nat.toText(nextTransactionId());
-      incrementTransactionId();
+      // let transactionId = "TXN_" # Nat.toText(nextTransactionId());
+      // incrementTransactionId();
 
-      let transaction : Transaction = {
-        id = transactionId;
-        from = issuingInstitutionId;
-        to = studentId;
-        transactionType = #DocumentIssue;
-        documentId = ?documentId;
-        timestamp = Time.now();
-        status = "completed";
-        notes = ?("Document issued: " # title);
-      };
+      // let transaction : Transaction = {
+      //   id = transactionId;
+      //   from = issuingInstitutionId;
+      //   to = studentId;
+      //   transactionType = #DocumentIssue;
+      //   documentId = ?documentId;
+      //   timestamp = Time.now();
+      //   status = "completed";
+      //   notes = ?("Document issued: " # title);
+      // };
 
-      transactions.put(transactionId, transaction);
+      // transactions.put(transactionId, transaction);
 
       #ok(newDocument);
     };
@@ -296,23 +298,15 @@ module Documents {
       #ok([]);
     };
 
-    public func getDocumentsByStudent(studentId : StudentId) : async Result.Result<[Document], Error> {
-      // TODO: Implement proper authentication when msg.caller is available
-      // For now, bypass authentication to allow testing
-      let _caller = Principal.fromText("2vxsx-fae");
-
-      // Skip authorization check for now
-      let authorized = true;
-
-      if (not authorized) {
-        return #err(#Unauthorized);
-      };
+   public func getDocumentsByStudentInt(studentId: StudentId, caller: Principal) : async Result.Result<[Document], Error> {
+      // Use provided caller
+      let _caller = caller;
 
       let documentsArray = Iter.toArray(documents.entries());
       let allDocuments = Array.map<(DocumentId, Document), Document>(documentsArray, func((_, doc)) = doc);
       let studentDocuments = Array.filter<Document>(allDocuments, func(document) = document.studentId == studentId);
 
-      #ok(studentDocuments);
+      return #ok(studentDocuments);
     };
 
     public func getDocumentsByInstitution(institutionId : InstitutionId) : async Result.Result<[Document], Error> {

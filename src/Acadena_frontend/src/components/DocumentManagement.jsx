@@ -16,6 +16,10 @@ const DocumentManagement = ({
   const [studentDocuments, setStudentDocuments] = React.useState([]);
   const [documentsLoading, setDocumentsLoading] = React.useState(false);
   const [selectedDocument, setSelectedDocument] = React.useState(null);
+  const [selectedContent, setSelectedContent] = React.useState({
+    content: []
+  });
+
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [toast, setToast] = React.useState(null);
 
@@ -154,6 +158,81 @@ const DocumentManagement = ({
       });
       setTimeout(() => setToast(null), 3000);
     }
+  };
+
+  
+  // Sample tile data - replace with your actual content options
+  const availableTiles = [
+    {
+      id: 'academic-achievements',
+      title: 'Academic Achievements',
+      description: 'Honor roll, dean\'s list, academic awards and recognitions',
+      content: 'Outstanding academic performance with consistent honor roll recognition and dean\'s list achievements.'
+    },
+    {
+      id: 'grades-transcript',
+      title: 'Grades & Transcript',
+      description: 'Official grade reports, GPA, and academic transcripts',
+      content: 'Complete academic transcript with cumulative GPA and course-by-course breakdown.'
+    },
+    {
+      id: 'extracurricular',
+      title: 'Extracurricular Activities',
+      description: 'Sports, clubs, organizations, and leadership roles',
+      content: 'Active participation in student government, debate team, and community service organizations.'
+    },
+    {
+      id: 'certifications',
+      title: 'Certifications & Licenses',
+      description: 'Professional certifications, licenses, and specialized training',
+      content: 'Industry-recognized certifications and professional development credentials.'
+    },
+    {
+      id: 'research-projects',
+      title: 'Research Projects',
+      description: 'Academic research, publications, and scholarly work',
+      content: 'Independent research projects with published findings and academic presentations.'
+    },
+    {
+      id: 'internships',
+      title: 'Internships & Work Experience',
+      description: 'Professional experience, internships, and job roles',
+      content: 'Relevant work experience and internship programs with key accomplishments.'
+    },
+    {
+      id: 'recommendations',
+      title: 'Letters of Recommendation',
+      description: 'Faculty and employer recommendations and references',
+      content: 'Strong recommendations from professors and supervisors highlighting key strengths.'
+    },
+    {
+      id: 'community-service',
+      title: 'Community Service',
+      description: 'Volunteer work, community involvement, and social impact',
+      content: 'Dedicated community service with measurable impact on local organizations.'
+    }
+  ];
+
+  const handleTileToggle = (tile) => {
+    const isSelected = selectedContent.content.some(item => item.id === tile.id);
+    
+    if (isSelected) {
+      // Remove tile
+      setSelectedContent({
+        ...selectedContent,
+        content: selectedContent.content.filter(item => item.id !== tile.id)
+      });
+    } else {
+      // Add tile
+      setSelectedContent({
+        ...selectedContent,
+        content: [...selectedContent.content, tile]
+      });
+    }
+  };
+
+  const getTotalCharacters = () => {
+    return selectedContent.content.reduce((total, item) => total + item.content.length, 0);
   };
 
   return (
@@ -454,22 +533,7 @@ const DocumentManagement = ({
                   </div>
                 </div>
 
-                <div className="form-group">
-                  <label htmlFor="title">
-                    <svg viewBox="0 0 24 24" fill="none">
-                      <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                    Document Title *
-                  </label>
-                  <input
-                    type="text"
-                    id="title"
-                    placeholder="Enter the official document title"
-                    value={documentForm.title}
-                    onChange={(e) => setDocumentForm({ ...documentForm, title: e.target.value })}
-                    required
-                  />
-                </div>
+                
               </div>
 
               <div className="form-group">
@@ -483,19 +547,51 @@ const DocumentManagement = ({
                   </svg>
                   Existing Document
                 </label>
-                <div className="textarea-wrapper">
-                  <textarea
-                    id="content"
-                    value={documentForm.content}
-                    onChange={(e) => setDocumentForm({ ...documentForm, content: e.target.value })}
-                    rows="8"
-                    placeholder="Enter the detailed content of the document. This will include all relevant academic information, achievements, grades, and official statements."
-                    required
-                  />
-                  <div className="textarea-counter">
-                    {documentForm.content.length} characters
-                  </div>
-                </div>
+                  
+      
+
+      {/* Scrollable Tiles Container */}
+      <div className="border border-[#BAD7E9] rounded-lg p-4" style={{backgroundColor: '#FCFFE7'}}>
+        <div className="selected-content-tiles-vertical custom-scrollbar max-h-80 overflow-y-auto pr-2">
+          {availableTiles.map((tile) => {
+            const isSelected = selectedContent.content.some(item => item.id === tile.id);
+            return (
+              <div
+                key={tile.id}
+                onClick={() => handleTileToggle(tile)}
+                className={`selected-tile-vertical ${isSelected ? 'selected' : ''}`}
+                style={{
+                  borderColor: isSelected ? '#EB455F' : '#BAD7E9',
+                  backgroundColor: isSelected ? '#BAD7E9' : '#fff',
+                  cursor: 'pointer',
+                  boxShadow: isSelected ? '0 4px 16px rgba(235,69,95,0.13)' : '0 2px 8px rgba(43,52,103,0.07)'
+                }}
+                title={tile.title}
+              >
+                <div className="selected-tile-title-vertical">{tile.title}</div>
+                <button
+                  onClick={e => { e.stopPropagation(); handleTileToggle(tile); }}
+                  className="selected-tile-remove-vertical"
+                  title={isSelected ? 'Remove from selection' : 'Add to selection'}
+                  style={{background: isSelected ? '#EB455F' : '#2B3467', color: '#fff'}}
+                >
+                  {isSelected ? 'Remove' : 'Add'}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+
+
+      {/* Hidden input to maintain form compatibility */}
+      <input
+        type="hidden"
+        name="content"
+        value={JSON.stringify(selectedContent.content)}
+      />
+    
               </div>
             </div>
 
@@ -817,6 +913,73 @@ const DocumentManagement = ({
         .btn-primary svg, .btn-secondary svg {
           width: 16px;
           height: 16px;
+        }
+
+          .custom-scrollbar::-webkit-scrollbar {
+          width: 8px;
+          background: #BAD7E9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #EB455F;
+          border-radius: 4px;
+        }
+        .custom-scrollbar {
+          scrollbar-width: thin;
+          scrollbar-color: #EB455F #BAD7E9;
+        }
+        .selected-content-tiles-vertical {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 12px;
+          min-height: 56px;
+          width: 100%;
+        }
+        .selected-tile-vertical {
+          background: #fff;
+          border: 2px solid #2B3467;
+          border-radius: 10px;
+          padding: 14px 24px 12px 24px;
+          min-width: 220px;
+          max-width: 400px;
+          width: 100%;
+          box-shadow: 0 2px 8px rgba(43,52,103,0.07);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 0;
+          transition: box-shadow 0.2s, border-color 0.2s, background 0.2s;
+        }
+        .selected-tile-vertical.selected {
+          border-color: #EB455F;
+          background: #BAD7E9;
+          box-shadow: 0 4px 16px rgba(235,69,95,0.13);
+        }
+        .selected-tile-vertical:hover {
+          box-shadow: 0 4px 16px rgba(235,69,95,0.13);
+          border-color: #EB455F;
+        }
+        .selected-tile-title-vertical {
+          color: #2B3467;
+          font-weight: 600;
+          font-size: 1.08em;
+          flex: 1;
+          text-align: center;
+          word-break: break-word;
+        }
+        .selected-tile-remove-vertical {
+          background: #EB455F;
+          color: #fff;
+          border: none;
+          border-radius: 6px;
+          padding: 4px 14px;
+          font-size: 0.95em;
+          cursor: pointer;
+          margin-left: 16px;
+          transition: background 0.15s;
+        }
+        .selected-tile-remove-vertical:hover {
+          background: #d12b4a;
         }
       `}</style>
     </div>

@@ -416,8 +416,8 @@ actor Acadena {
     await documentService.getMyDocuments();
   };
 
-  public func getDocumentsByStudent(studentId : StudentId) : async Result.Result<[Document], Error> {
-    await documentService.getDocumentsByStudent(studentId);
+  public shared ({ caller }) func getDocumentsByStudent(studentId: StudentId) : async Result.Result<[Document], Error> {
+    await documentService.getDocumentsByStudentInt(studentId, caller);
   };
 
   // Invitation Code Management Functions
