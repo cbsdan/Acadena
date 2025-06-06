@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Actor, HttpAgent } from '@dfinity/agent';
 import { idlFactory, canisterId } from '../../../declarations/Acadena_backend';
 import './assets/styles/main.css';
@@ -11,9 +12,12 @@ if (process.env.DFX_NETWORK !== "ic") {
 const backend = Actor.createActor(idlFactory, { agent, canisterId });
 
 export default function Institutions({ onBackToLanding }) {
+  const navigate = useNavigate();
   const [institutions, setInstitutions] = useState([]);
   const [selectedInstitution, setSelectedInstitution] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     backend.getCHEDInstitutions()
@@ -28,23 +32,43 @@ export default function Institutions({ onBackToLanding }) {
       });
   }, []);
 
-  const handleInstitutionSelect = (event) => {
-    const selectedIndex = parseInt(event.target.value);
-    if (selectedIndex >= 0) {
-      setSelectedInstitution(institutions[selectedIndex]);
-    } else {
-      setSelectedInstitution(null);
-    }
+  const handleInstitutionSelect = (institution) => {
+    setSelectedInstitution(institution);
+    setShowModal(false); // Close modal automatically
+    setSearchTerm(''); // Clear search term
   };
 
   const handleBackToHome = (e) => {
     e.preventDefault();
+    console.log("🏠 Navigating back to home...");
+    
+    // Try using the prop function first
     if (onBackToLanding && typeof onBackToLanding === 'function') {
+      console.log("✅ Using onBackToLanding prop");
       onBackToLanding();
     } else {
-      console.error("onBackToLanding is not a function or is undefined");
+      // Fallback to direct navigation
+      console.log("🔄 Using direct navigation fallback");
+      navigate('/');
     }
   };
+
+  const openModal = () => {
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setSearchTerm('');
+  };
+
+  // Filter institutions based on search term
+  const filteredInstitutions = institutions.filter(inst =>
+    inst.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    inst.province.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    inst.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    inst.region.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   if (loading) {
     return (
@@ -158,28 +182,18 @@ export default function Institutions({ onBackToLanding }) {
 
           <div className="institution-selector">
             <div className="selector-wrapper">
-              <label htmlFor="institution-dropdown" className="dropdown-label">
+              <label className="dropdown-label">
                 <svg className="label-icon" viewBox="0 0 24 24" fill="none">
                   <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2"/>
                   <path d="m21 21-4.35-4.35" stroke="currentColor" strokeWidth="2"/>
                 </svg>
                 Select an Institution
               </label>
-              <div className="dropdown-container">
-                <select 
-                  id="institution-dropdown"
-                  className="institution-dropdown"
-                  onChange={handleInstitutionSelect}
-                  defaultValue=""
-                >
-                  <option value="">-- Choose an institution --</option>
-                  {institutions.map((inst, idx) => (
-                    <option key={idx} value={idx}>
-                      {inst.name} - {inst.region}, {inst.province}, {inst.city}
-                    </option>
-                  ))}
-                </select>
-                <div className="dropdown-arrow">
+              <div className="institution-selector-button" onClick={openModal}>
+                <span className="selector-text">
+                  {selectedInstitution ? selectedInstitution.name : "-- Choose an institution --"}
+                </span>
+                <div className="selector-arrow">
                   <svg viewBox="0 0 24 24" fill="none">
                     <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
@@ -189,6 +203,84 @@ export default function Institutions({ onBackToLanding }) {
           </div>
         </div>
       </div>
+
+      {/* Modal */}
+      {showModal && (
+        <div className="modal-overlay" onClick={closeModal}>
+          <div className="modal-container" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3 className="modal-title">
+                <svg className="modal-icon" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="currentColor" strokeWidth="2"/>
+                  <path d="m2 17 10 5 10-5" stroke="currentColor" strokeWidth="2"/>
+                  <path d="m2 12 10 5 10-5" stroke="currentColor" strokeWidth="2"/>
+                </svg>
+                Select Institution
+              </h3>
+              <button className="modal-close" onClick={closeModal}>
+                <svg viewBox="0 0 24 24" fill="none">
+                  <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" strokeWidth="2"/>
+                  <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" strokeWidth="2"/>
+                </svg>
+              </button>
+            </div>
+
+            <div className="modal-search">
+              <div className="search-wrapper">
+                <svg className="search-icon" viewBox="0 0 24 24" fill="none">
+                  <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2"/>
+                  <path d="m21 21-4.35-4.35" stroke="currentColor" strokeWidth="2"/>
+                </svg>
+                <input
+                  type="text"
+                  placeholder="Search institutions..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="search-input"
+                />
+              </div>
+              <div className="search-results-count">
+                {filteredInstitutions.length} of {institutions.length} institutions
+              </div>
+            </div>
+
+            <div className="modal-body">
+              <div className="institutions-list">
+                {filteredInstitutions.map((inst, idx) => (
+                  <div 
+                    key={idx} 
+                    className="institution-row"
+                    onClick={() => handleInstitutionSelect(inst)}
+                  >
+                    <div className="institution-row-icon">
+                      <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="currentColor" strokeWidth="2"/>
+                        <path d="m2 17 10 5 10-5" stroke="currentColor" strokeWidth="2"/>
+                        <path d="m2 12 10 5 10-5" stroke="currentColor" strokeWidth="2"/>
+                      </svg>
+                    </div>
+                    <div className="institution-row-content">
+                      <div className="institution-row-name">{inst.name}</div>
+                      <div className="institution-row-location">
+                        <svg className="location-icon" viewBox="0 0 24 24" fill="none">
+                          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" stroke="currentColor" strokeWidth="2"/>
+                          <circle cx="12" cy="10" r="3" stroke="currentColor" strokeWidth="2"/>
+                        </svg>
+                        {inst.city}, {inst.province}, {inst.region}
+                      </div>
+                    </div>
+                    <div className="institution-row-arrow">
+                      <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2"/>
+                      </svg>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Institution Details */}
       {selectedInstitution && (
@@ -288,7 +380,7 @@ export default function Institutions({ onBackToLanding }) {
                 </svg>
               </div>
               <h3 className="no-selection-title">Select an institution to view details</h3>
-              <p className="no-selection-description">Choose from the dropdown above to see comprehensive institution information</p>
+              <p className="no-selection-description">Click the selector above to browse and choose from our comprehensive database</p>
             </div>
           </div>
         </div>
