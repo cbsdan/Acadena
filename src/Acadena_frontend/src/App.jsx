@@ -145,16 +145,31 @@ function AppContent() {
     checkPendingRegistration();
   }, []);
 
-useEffect(() => {
-  if (
-    location.pathname === '/app' &&
-    isAuthenticated &&
-    user &&
-    (currentView === 'login' || currentView === '' || currentView == null)
-  ) {
-    setCurrentView('dashboard');
-  }
-}, [location.pathname, isAuthenticated, user, currentView]);
+  useEffect(() => {
+    if (
+      location.pathname === '/app' &&
+      isAuthenticated &&
+      user &&
+      (currentView === 'login' || currentView === '' || currentView == null)
+    ) {
+      setCurrentView('dashboard');
+    }
+  }, [location.pathname, isAuthenticated, user, currentView]);
+
+  useEffect(() => {
+    // Get the last view from sessionStorage on mount
+    const lastView = sessionStorage.getItem('currentView');
+    if (lastView) {
+      setCurrentView(lastView);
+    }
+  }, []);
+
+  // Then modify the setCurrentView to persist the view
+  const handleSetCurrentView = (view) => {
+    setCurrentView(view);
+    sessionStorage.setItem('currentView', view);
+  };
+
   // Navigation functions
   const navigateToLanding = () => 
     {
@@ -165,10 +180,13 @@ useEffect(() => {
     navigate('/institutions');
   };
 
-  const navigateToApp = () => {
-    navigate('/app');
-  };
-
+const navigateToApp = () => {
+  // If not authenticated, set view to login first
+  if (!isAuthenticated) {
+    setCurrentView('login');
+  }
+  navigate('/app');
+};
   // Enhanced handlers with navigation
   const handleLoginWithNav = async () => {
     try {
@@ -194,7 +212,9 @@ useEffect(() => {
   const handleLogoutWithNav = () => {
     handleLogout();
     setCurrentView('login');
+    sessionStorage.removeItem('currentView'); 
     navigate('/'); // Navigate to landing page on logout
+
     // Clear form data on logout
     setInstitutions([]);
     setStudents([]);
@@ -507,21 +527,22 @@ useEffect(() => {
     // App routes (protected)
     if (path === '/app') {
         // Show loading spinner while authentication is being checked
-if (user == null && !isAuthenticated) {
-  // Only show global loading spinner while checking authentication
-  return (
-    <div className="app">
-      <Header isAuthenticated={isAuthenticated} />
-      <main className="main-content">
-        <div style={{ textAlign: 'center', marginTop: '3rem', color: '#888' }}>
-          Loading...
-        </div>
-      </main>
-    </div>
-  );
-}
-
- if (!isAuthenticated || !user) {
+      if (user == null && !isAuthenticated) {
+        // Only show global loading spinner while checking authentication
+        if (loading) {
+        return (
+          <div className="app">
+            <Header isAuthenticated={isAuthenticated} />
+            <main className="main-content">
+              <div style={{ textAlign: 'center', marginTop: '3rem', color: '#888' }}>
+                Loading...
+              </div>
+            </main>
+          </div>
+          );
+        }
+      }
+      if (!isAuthenticated || !user) {
         return (
           <div className="app">
             <Header isAuthenticated={isAuthenticated} />
@@ -530,7 +551,7 @@ if (user == null && !isAuthenticated) {
                 <Login
                   handleLogin={handleLoginWithNav}
                   loading={loading}
-                  setCurrentView={setCurrentView}
+                  setCurrentView={handleSetCurrentView}
                 />
               )}
               {currentView === 'register-institution' && (
@@ -539,7 +560,7 @@ if (user == null && !isAuthenticated) {
                   setInstitutionWithAdminForm={setInstitutionWithAdminForm}
                   handleInstitutionWithAdminSubmit={handleInstitutionWithAdminSubmit}
                   loading={loading}
-                  setCurrentView={setCurrentView}
+                  setCurrentView={handleSetCurrentView}
                 />
               )}
               {currentView === 'claim-invitation' && (
@@ -550,7 +571,7 @@ if (user == null && !isAuthenticated) {
                   handleCheckInvitationCode={handleCheckInvitationCode}
                   invitationCodeInfo={invitationCodeInfo}
                   loading={loading}
-                  setCurrentView={setCurrentView}
+                  setCurrentView={handleSetCurrentView}
                 />
               )}
             </main>
@@ -569,7 +590,7 @@ if (user == null && !isAuthenticated) {
           <ModernNavigation 
             navItems={getNavItems()}
             currentView={currentView}
-            setCurrentView={setCurrentView}
+            setCurrentView={handleSetCurrentView}
           />
 
           <main className="main-content">
