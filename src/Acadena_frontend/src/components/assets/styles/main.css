@@ -132,6 +132,11 @@ html {
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.navbar-center {
+  display: flex;
+  align-items: center;
+}
+
 .navbar-menu {
   display: flex;
   list-style: none;
@@ -188,6 +193,11 @@ html {
 .nav-link-button:hover {
   color: #eb455f;
   transform: translateY(-2px);
+}
+
+.navbar-right {
+  display: flex;
+  align-items: center;
 }
 
 .navbar-button {
@@ -971,82 +981,327 @@ html {
   color: white;
 }
 
-.dropdown-container {
-  position: relative;
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 50px;
-  padding: 8px;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(15px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-}
-
-/* Fixed Dropdown Centering */
-.institution-dropdown {
+/* Institution Selector Button */
+.institution-selector-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   width: 100%;
-  padding: 18px 60px 18px 25px;
-  border: none;
-  border-radius: 50px;
-  font-size: 1.1rem;
-  font-family: 'Nunito', sans-serif;
-  font-weight: 500;
-  background: transparent;
-  color: #2d3748;
-  cursor: pointer;
-  outline: none;
-  appearance: none;
-  text-align: center;
-  text-align-last: center;
-  direction: ltr;
-}
-
-/* Force center alignment for dropdown options */
-.institution-dropdown option {
-  font-family: 'Nunito', sans-serif;
-  font-weight: 500;
-  padding: 15px;
+  padding: 1rem 1.5rem;
   background: white;
-  color: #2d3748;
-  text-align: center;
-  direction: ltr;
-  text-align-last: center;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+  font-family: 'Nunito', sans-serif;
+  color: #374151;
 }
 
-/* Webkit specific centering */
-@-moz-document url-prefix() {
-  .institution-dropdown option {
-    text-align: center;
-  }
+.institution-selector-button:hover {
+  border-color: #667eea;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+  transform: translateY(-2px);
 }
 
-/* For IE/Edge */
-.institution-dropdown::-ms-expand {
+.selector-text {
+  flex: 1;
+  text-align: left;
+  font-weight: 500;
+}
+
+.selector-arrow {
+  width: 20px;
+  height: 20px;
+  color: #64748b;
+  transition: transform 0.3s ease;
+}
+
+.institution-selector-button:hover .selector-arrow {
+  transform: translateY(2px);
+}
+
+/* Hide old dropdown styles */
+.dropdown-container,
+.institution-dropdown {
   display: none;
 }
 
-/* Force center alignment in all browsers */
-select.institution-dropdown {
-  text-align: center !important;
-  text-align-last: center !important;
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 2rem;
+  animation: modalOverlayFadeIn 0.3s ease-out;
 }
 
-select.institution-dropdown option {
-  text-align: center !important;
-  direction: ltr !important;
+@keyframes modalOverlayFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
-.dropdown-arrow {
+.modal-container {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+  width: 100%;
+  max-width: 800px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  animation: modalSlideIn 0.3s ease-out;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2rem 2rem 0 2rem;
+  border-bottom: 1px solid #f1f5f9;
+  margin-bottom: 1.5rem;
+}
+
+.modal-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
+}
+
+.modal-icon {
+  width: 24px;
+  height: 24px;
+  color: #667eea;
+}
+
+.modal-close {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: rgba(239, 68, 68, 0.1);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  color: #ef4444;
+}
+
+.modal-close:hover {
+  background: rgba(239, 68, 68, 0.2);
+  transform: scale(1.05);
+}
+
+.modal-close svg {
+  width: 20px;
+  height: 20px;
+}
+
+.modal-search {
+  padding: 0 2rem 1.5rem 2rem;
+  border-bottom: 1px solid #f1f5f9;
+  margin-bottom: 1rem;
+}
+
+.search-wrapper {
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+.search-icon {
   position: absolute;
-  right: 25px;
+  left: 1rem;
   top: 50%;
   transform: translateY(-50%);
   width: 20px;
   height: 20px;
-  color: #667eea;
+  color: #64748b;
   pointer-events: none;
 }
 
-.dropdown-arrow svg {
+.search-input {
+  width: 100%;
+  padding: 0.875rem 1rem 0.875rem 3rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-family: 'Nunito', sans-serif;
+  transition: all 0.3s ease;
+  background: #f8fafc;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #667eea;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.search-results-count {
+  font-size: 0.875rem;
+  color: #64748b;
+  text-align: center;
+  font-weight: 500;
+}
+
+.modal-body {
+  flex: 1;
+  overflow: hidden;
+  padding: 0 2rem 2rem 2rem;
+}
+
+.institutions-list {
+  height: 400px;
+  overflow-y: auto;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.institutions-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.institutions-list::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.institutions-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.institutions-list::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+.institution-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #f1f5f9;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: white;
+  animation: slideInRight 0.3s ease-out;
+}
+
+.institution-row:hover {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+  border-left: 4px solid #667eea;
+  padding-left: calc(1.5rem - 4px);
+}
+
+.institution-row:last-child {
+  border-bottom: none;
+}
+
+.institution-row:nth-child(even) {
+  animation-delay: 0.05s;
+}
+
+.institution-row:nth-child(3n) {
+  animation-delay: 0.1s;
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.institution-row-icon {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.institution-row-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.institution-row-content {
+  flex: 1;
+}
+
+.institution-row-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.25rem;
+  line-height: 1.4;
+}
+
+.institution-row-location {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.location-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.institution-row-arrow {
+  width: 24px;
+  height: 24px;
+  color: #94a3b8;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.institution-row:hover .institution-row-arrow {
+  color: #667eea;
+  transform: translateX(4px);
+}
+
+.institution-row-arrow svg {
   width: 100%;
   height: 100%;
 }
@@ -1326,6 +1581,88 @@ select.institution-dropdown option {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* Responsive Modal */
+@media (max-width: 768px) {
+  .modal-overlay {
+    padding: 1rem;
+  }
+  
+  .modal-container {
+    max-height: 90vh;
+    border-radius: 16px;
+  }
+  
+  .modal-header {
+    padding: 1.5rem 1.5rem 0 1.5rem;
+  }
+  
+  .modal-title {
+    font-size: 1.25rem;
+  }
+  
+  .modal-search {
+    padding: 0 1.5rem 1rem 1.5rem;
+  }
+  
+  .modal-body {
+    padding: 0 1.5rem 1.5rem 1.5rem;
+  }
+  
+  .institutions-list {
+    height: 300px;
+  }
+  
+  .institution-row {
+    padding: 0.875rem 1rem;
+  }
+  
+  .institution-row-name {
+    font-size: 0.9rem;
+  }
+  
+  .institution-row-location {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-container {
+    max-height: 95vh;
+    margin: 0.5rem;
+  }
+  
+  .modal-header {
+    padding: 1rem;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  
+  .modal-search {
+    padding: 0 1rem 1rem 1rem;
+  }
+  
+  .modal-body {
+    padding: 0 1rem 1rem 1rem;
+  }
+  
+  .institution-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+  
+  .institution-row-icon {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .institution-row-arrow {
+    align-self: flex-end;
   }
 }
 

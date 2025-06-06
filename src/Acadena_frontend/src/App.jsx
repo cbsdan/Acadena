@@ -3,7 +3,7 @@ import './App.css';
 
 import {Provider} from 'react-redux';
 import store from './redux/store';
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from "react-router-dom";
 
 // Import hooks and utilities
 import { useAuth, useData } from './hooks';
@@ -32,7 +32,11 @@ import {
 
 import { internetIdentityRegistrationService } from './services/InternetIdentityRegistrationService';
 
-function App() {
+// Main App Component wrapped in Router context
+function AppContent() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  
   // Authentication and navigation state
   const {
     user,
@@ -45,13 +49,12 @@ function App() {
     handleLogout
   } = useAuth();
 
-  // Add showLandingPage and showInstitutions state
-  const [showLandingPage, setShowLandingPage] = useState(true);
-  const [showInstitutions, setShowInstitutions] = useState(false);
+  // Navigation state
   const [currentView, setCurrentView] = useState('login');
   const [institutionDocuments, setInstitutionDocuments] = useState([]);
   const [institutionDocumentsLoading, setInstitutionDocumentsLoading] = useState(false);
-  // ...existing code for data state and form states...
+  
+  // Data state
   const {
     institutions,
     setInstitutions,
@@ -66,6 +69,7 @@ function App() {
     loadMyInvitationCodes
   } = useData(user, isAuthenticated);
 
+  // Form states
   const [institutionWithAdminForm, setInstitutionWithAdminForm] = useState({
     name: '',
     institutionType: 'University',
@@ -89,20 +93,13 @@ function App() {
     yearLevel: 1
   });
 
-const loadDocumentsByInstitution = useCallback((institutionId) => {
-  documentHandlers.fetchDocumentsByInstitution(
-    institutionId,
-    setInstitutionDocuments,
-    setInstitutionDocumentsLoading
-  );
-}, [setInstitutionDocuments, setInstitutionDocumentsLoading]);
+  const [uploadDocumentForm, setUploadDocumentForm] = useState({
+    studentId: '',
+    documentType: 'Transcript',
+    title: '',
+    file: null
+  });
 
-const [uploadDocumentForm, setUploadDocumentForm] = useState({
-  studentId: '',
-  documentType: 'Transcript',
-  title: '',
-  file: null
-});
   const [documentForm, setDocumentForm] = useState({
     studentId: '',
     documentType: 'Transcript',
@@ -115,6 +112,15 @@ const [uploadDocumentForm, setUploadDocumentForm] = useState({
   });
 
   const [invitationCodeInfo, setInvitationCodeInfo] = useState(null);
+
+  // Load documents by institution
+  const loadDocumentsByInstitution = useCallback((institutionId) => {
+    documentHandlers.fetchDocumentsByInstitution(
+      institutionId,
+      setInstitutionDocuments,
+      setInstitutionDocumentsLoading
+    );
+  }, [setInstitutionDocuments, setInstitutionDocumentsLoading]);
 
   useEffect(() => {
     // Check for pending institution registration on app load
@@ -139,66 +145,52 @@ const [uploadDocumentForm, setUploadDocumentForm] = useState({
     checkPendingRegistration();
   }, []);
 
-  // Function to navigate from landing page to app
-  const enterApp = () => {
-    setShowLandingPage(false);
-    setShowInstitutions(false);
+  // Navigation functions
+  const navigateToLanding = () => {
+    navigate('/');
   };
 
-  // Function to show Institutions page
-  const showInstitutionsPage = () => {
-    setShowLandingPage(false);
-    setShowInstitutions(true);
+  const navigateToInstitutions = () => {
+    navigate('/institutions');
   };
 
-  // If showing Institutions page, render only that
-  if (showInstitutions) {
-    return <Institutions />;
-  }
-
-  // If showing landing page, render only that
-  if (showLandingPage) {
-    return (
-      <LandingPage
-        onEnterApp={enterApp}
-        onShowInstitutions={showInstitutionsPage}
-      />
-    );
-  }
+  const navigateToApp = () => {
+    navigate('/app');
+  };
 
   // Enhanced handlers with navigation
   const handleLoginWithNav = async () => {
     try {
       await handleLogin();
       setCurrentView('dashboard');
+      navigate('/app');
     } catch (error) {
       // Error already handled in handleLogin
     }
   };
 
-const handleDocumentUpload = (e) => {
-  return documentHandlers.handleDocumentUpload(
-    e,
-    user,
-    uploadDocumentForm,
-    setUploadDocumentForm,
-    setLoading,
-    loadSystemStatus
-  );
-};
+  const handleDocumentUpload = (e) => {
+    return documentHandlers.handleDocumentUpload(
+      e,
+      user,
+      uploadDocumentForm,
+      setUploadDocumentForm,
+      setLoading,
+      loadSystemStatus
+    );
+  };
 
   const handleLogoutWithNav = () => {
     handleLogout();
     setCurrentView('login');
-    setShowLandingPage(true); // Go back to landing page on logout
-    setShowInstitutions(false);
+    navigate('/'); // Navigate to landing page on logout
     // Clear form data on logout
     setInstitutions([]);
     setStudents([]);
     setDocuments([]);
   };
 
-  // ...rest of your existing handler functions...
+  // Form handlers
   const handleInstitutionWithAdminSubmit = (e) => {
     return institutionHandlers.handleInstitutionWithAdminSubmit(
       e,
@@ -253,24 +245,30 @@ const handleDocumentUpload = (e) => {
     );
   };
 
+  // Navigation items
   const getNavItems = () => {
-    const items = [{ key: 'dashboard', label: 'Dashboard'}];
+    const items = [{ key: 'dashboard', label: 'Dashboard', icon: '📊' }];
     
     if (user?.role.InstitutionAdmin) {
       items.push(
-        { key: 'students', label: 'Register Student'},
-        { key: 'documents', label: 'Issue Document' },
-        { key: 'upload', label: 'Upload Document' },
-        { key: 'institution-documents', label: 'Institution Documents' }
+        { key: 'students', label: 'Register Student', icon: '👥' },
+        { key: 'documents', label: 'Issue Document', icon: '📄' },
+        { key: 'upload', label: 'Upload Document', icon: '📤' },
+        { key: 'institution-documents', label: 'Institution Documents', icon: '🏛️' }
       );
     }
     
     return items;
   };
 
+  // Modern Navigation Component
   const ModernNavigation = ({ navItems, currentView, setCurrentView }) => (
     <nav style={navStyles.nav}>
       <div style={navStyles.navContainer}>
+        <div style={navStyles.navBrand}>
+          <div style={navStyles.brandIcon}>🎓</div>
+          <span style={navStyles.brandText}>Acadena</span>
+        </div>
         
         <div style={navStyles.navItems}>
           {navItems.map((item) => (
@@ -296,8 +294,6 @@ const handleDocumentUpload = (e) => {
               <span style={navStyles.navItemLabel}>{item.label}</span>
             </button>
           ))}
-       
-
         </div>
         
         <div style={navStyles.navProfile}>
@@ -319,6 +315,7 @@ const handleDocumentUpload = (e) => {
     </nav>
   );
 
+  // Navigation styles
   const navStyles = {
     nav: {
       background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
@@ -477,53 +474,65 @@ const handleDocumentUpload = (e) => {
     }
   `;
 
-  // ...rest of your existing render logic...
-  if (!isAuthenticated) {
-    return (
+  // Route-based rendering
+  const renderCurrentPage = () => {
+    const path = location.pathname;
+    
+    // Landing page route
+    if (path === '/') {
+      return (
+        <LandingPage
+          onEnterApp={navigateToApp}
+          onShowInstitutions={navigateToInstitutions}
+        />
+      );
+    }
+    
+    // Institutions page route
+    if (path === '/institutions') {
+      return <Institutions onBackToLanding={navigateToLanding} />;
+    }
+    
+    // App routes (protected)
+    if (path === '/app') {
+      if (!isAuthenticated) {
+        return (
+          <div className="app">
+            <Header isAuthenticated={isAuthenticated} />
+            <main className="main-content">
+              {currentView === 'login' && (
+                <Login
+                  handleLogin={handleLoginWithNav}
+                  loading={loading}
+                  setCurrentView={setCurrentView}
+                />
+              )}
+              {currentView === 'register-institution' && (
+                <InstitutionRegistration
+                  institutionWithAdminForm={institutionWithAdminForm}
+                  setInstitutionWithAdminForm={setInstitutionWithAdminForm}
+                  handleInstitutionWithAdminSubmit={handleInstitutionWithAdminSubmit}
+                  loading={loading}
+                  setCurrentView={setCurrentView}
+                />
+              )}
+              {currentView === 'claim-invitation' && (
+                <InvitationCodeClaim
+                  invitationCodeForm={invitationCodeForm}
+                  setInvitationCodeForm={setInvitationCodeForm}
+                  handleInvitationCodeSubmit={handleInvitationCodeSubmit}
+                  handleCheckInvitationCode={handleCheckInvitationCode}
+                  invitationCodeInfo={invitationCodeInfo}
+                  loading={loading}
+                  setCurrentView={setCurrentView}
+                />
+              )}
+            </main>
+          </div>
+        );
+      }
 
-      
-      <div className="app">
-        <Header isAuthenticated={isAuthenticated} />
-
-        <main className="main-content">
-          {currentView === 'login' && (
-            <Login
-              handleLogin={handleLoginWithNav}
-              loading={loading}
-              setCurrentView={setCurrentView}
-            />
-          )}
-          {currentView === 'register-institution' && (
-            <InstitutionRegistration
-              institutionWithAdminForm={institutionWithAdminForm}
-              setInstitutionWithAdminForm={setInstitutionWithAdminForm}
-              handleInstitutionWithAdminSubmit={handleInstitutionWithAdminSubmit}
-              loading={loading}
-              setCurrentView={setCurrentView}
-            />
-          )}
-          {currentView === 'claim-invitation' && (
-            <InvitationCodeClaim
-              invitationCodeForm={invitationCodeForm}
-              setInvitationCodeForm={setInvitationCodeForm}
-              handleInvitationCodeSubmit={handleInvitationCodeSubmit}
-              handleCheckInvitationCode={handleCheckInvitationCode}
-              invitationCodeInfo={invitationCodeInfo}
-              loading={loading}
-              setCurrentView={setCurrentView}
-            />
-          )}
-        </main>
-      </div>
-    );
-  }
-
-  return (
-
-    <Provider store={store}>
-      
-
-     
+      return (
         <div className="app">
           <style>{mobileStyles}</style>
           <Header 
@@ -573,7 +582,7 @@ const handleDocumentUpload = (e) => {
                 loading={loading}
               />
             )}
-          {currentView === 'institution-documents' && user?.role.InstitutionAdmin && (
+            {currentView === 'institution-documents' && user?.role.InstitutionAdmin && (
               <DocumentPerInstitution
                 institutionId={user?.role?.InstitutionAdmin}
                 documents={institutionDocuments}
@@ -585,11 +594,30 @@ const handleDocumentUpload = (e) => {
             )}
           </main>
         </div>
-            <Router>
-         <Routes>
-                {/* <Route path="/Transfer" element />   */}
-            </Routes>
-        </Router>
+      );
+    }
+
+    // Default fallback to landing page
+    return (
+      <LandingPage
+        onEnterApp={navigateToApp}
+        onShowInstitutions={navigateToInstitutions}
+      />
+    );
+  };
+
+  return renderCurrentPage();
+}
+
+// Main App Component with Router Provider
+function App() {
+  return (
+    <Provider store={store}>
+      <Router>
+        <Routes>
+          <Route path="/*" element={<AppContent />} />
+        </Routes>
+      </Router>
     </Provider>
   );
 }
