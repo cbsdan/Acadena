@@ -19,9 +19,13 @@ class InternetIdentityRegistrationService {
             if (formData) {
                 const requiredFields = [
                     'name', 'institutionType', 'address', 'contactEmail',
-                    'contactPhone', 'accreditationNumber', 'adminFirstName',
-                    'adminLastName', 'adminEmail'
+                    'contactPhone', 'accreditationNumber', 'adminEmail'
                 ];
+                // const requiredFields = [
+                //     'name', 'institutionType', 'address', 'contactEmail',
+                //     'contactPhone', 'accreditationNumber', 'adminFirstName',
+                //     'adminLastName', 'adminEmail'
+                // ];
 
                 const missingFields = requiredFields.filter(field =>
                     !formData[field] ||

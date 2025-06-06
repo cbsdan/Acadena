@@ -26,8 +26,8 @@ module Users {
     public func registerUser(
       caller : Principal,
       email : Text,
-      firstName : Text,
-      lastName : Text,
+      // firstName : Text,
+      // lastName : Text,
       role : UserRole,
     ) : async Result.Result<User, Error> {
       // Enhanced debugging
@@ -43,9 +43,9 @@ module Users {
       };
 
       // Validate input
-      if (Text.size(email) == 0 or Text.size(firstName) == 0 or Text.size(lastName) == 0) {
-        return #err(#InvalidInput);
-      };
+      // if (Text.size(email) == 0 or Text.size(firstName) == 0 or Text.size(lastName) == 0) {
+      //   return #err(#InvalidInput);
+      // };
 
       let userId = "USER_" # Nat.toText(nextUserId());
       incrementUserId();
@@ -55,8 +55,8 @@ module Users {
         principal = caller;
         role = role;
         email = email;
-        firstName = firstName;
-        lastName = lastName;
+        // firstName = firstName;
+        // lastName = lastName;
         createdDate = Time.now();
         lastLoginDate = null;
         isActive = true;

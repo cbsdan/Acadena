@@ -20,7 +20,8 @@ module Institutions {
     institutions: Map.HashMap<InstitutionId, Institution>,
     nextInstitutionId: () -> Nat,
     incrementInstitutionId: () -> (),
-    registerUser: (Principal, Text, Text, Text, Types.UserRole) -> async Result.Result<User, Error>
+    registerUser: (Principal, Text, Types.UserRole) -> async Result.Result<User, Error>
+    // registerUser: (Principal, Text, Text, Text, Types.UserRole) -> async Result.Result<User, Error>
   ) {
     
     public func registerInstitutionWithAdmin(
@@ -33,8 +34,8 @@ module Institutions {
       accreditationNumber: Text,
       website: ?Text,
       description: ?Text,
-      adminFirstName: Text,
-      adminLastName: Text,
+      // adminFirstName: Text,
+      // adminLastName: Text,
       adminEmail: Text
     ) : async Result.Result<(Institution, User), Error> {
       
@@ -43,9 +44,9 @@ module Institutions {
         return #err(#InvalidInput);
       };
       
-      if (Text.size(adminFirstName) == 0 or Text.size(adminLastName) == 0 or Text.size(adminEmail) == 0) {
-        return #err(#InvalidInput);
-      };
+      // if (Text.size(adminFirstName) == 0 or Text.size(adminLastName) == 0 or Text.size(adminEmail) == 0) {
+      //   return #err(#InvalidInput);
+      // };
       
       // Check if institution with same accreditation number already exists
       for ((id, inst) in institutions.entries()) {
@@ -59,7 +60,8 @@ module Institutions {
       
       // Create institution admin user
       let adminRole = #InstitutionAdmin(institutionId);
-      let adminUserResult = await registerUser(caller, adminEmail, adminFirstName, adminLastName, adminRole);
+      // let adminUserResult = await registerUser(caller, adminEmail, adminFirstName, adminLastName, adminRole);
+      let adminUserResult = await registerUser(caller, adminEmail, adminRole);
       
       let adminUser = switch (adminUserResult) {
         case (#ok(user)) { user };

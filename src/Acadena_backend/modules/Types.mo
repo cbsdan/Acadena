@@ -24,8 +24,6 @@ module Types {
     principal : Principal;
     role : UserRole;
     email : Text;
-    firstName : Text;
-    lastName : Text;
     createdDate : Int;
     lastLoginDate : ?Int;
     isActive : Bool;

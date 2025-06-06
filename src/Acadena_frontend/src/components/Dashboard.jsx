@@ -90,7 +90,7 @@ const Dashboard = ({
           <div className="welcome-content">
             <div className="greeting-text">{getGreeting()}</div>
             <h1 className="welcome-title">
-              <span className="user-name">{user.firstName} {user.lastName}</span>
+              <span className="user-name">{getUserRoleDisplay() === "Institution Administrator" && "Admin"}{getUserRoleDisplay() === "Student" && "Student"}</span>
             </h1>
             <div className="user-details">
               <div className="user-role">

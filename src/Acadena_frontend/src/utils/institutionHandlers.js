@@ -15,11 +15,15 @@ export const institutionHandlers = {
     setLoading(true);
 
     try {
-      // Validate form data first
+      // Old code
+      // const requiredFields = [
+      //   'name', 'institutionType', 'address', 'contactEmail',
+      //   'contactPhone', 'accreditationNumber', 'adminFirstName',
+      //   'adminLastName', 'adminEmail'
+      // ];
       const requiredFields = [
         'name', 'institutionType', 'address', 'contactEmail',
-        'contactPhone', 'accreditationNumber', 'adminFirstName',
-        'adminLastName', 'adminEmail'
+        'contactPhone', 'accreditationNumber', 'adminEmail'
       ];
 
       const missingFields = requiredFields.filter(field =>
@@ -156,8 +160,8 @@ async function submitInstitutionRegistration(
       formData.accreditationNumber,
       formData.website ? [formData.website] : [],
       formData.description ? [formData.description] : [],
-      formData.adminFirstName,
-      formData.adminLastName,
+      // formData.adminFirstName,
+      // formData.adminLastName,
       formData.adminEmail
     );
 
@@ -169,7 +173,7 @@ async function submitInstitutionRegistration(
       alert(
         `Institution and admin account created successfully!\n\n` +
         `Institution: ${formData.name}\n` +
-        `Admin: ${formData.adminFirstName} ${formData.adminLastName}\n\n` +
+        `Admin: ${formData.adminEmail}\n\n` +
         `You can now manage students and documents for your institution.`
       );
 
@@ -183,8 +187,8 @@ async function submitInstitutionRegistration(
         accreditationNumber: '',
         website: '',
         description: '',
-        adminFirstName: '',
-        adminLastName: '',
+        // adminFirstName: '',
+        // adminLastName: '',
         adminEmail: ''
       });
 
