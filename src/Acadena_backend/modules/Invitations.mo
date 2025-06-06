@@ -128,8 +128,8 @@ module Invitations {
                 principal = caller;
                 role = studentRole;
                 email = student.email;
-                firstName = student.firstName;
-                lastName = student.lastName;
+                // firstName = student.firstName;
+                // lastName = student.lastName;
                 createdDate = Time.now();
                 lastLoginDate = null;
                 isActive = true;

@@ -24,7 +24,7 @@ module Students {
     institutions: Map.HashMap<InstitutionId, Institution>,
     nextStudentId: () -> Nat,
     incrementStudentId: () -> (),
-    registerUser: (Principal, Text, Text, Text, UserRole) -> async Result.Result<User, Error>,
+    registerUser: (Principal, Text, UserRole) -> async Result.Result<User, Error>,
     generateInvitationCode: (StudentId, InstitutionId, UserId) -> Result.Result<Text, Error>
   ) {
     
@@ -58,7 +58,8 @@ module Students {
       
       // Create student user account
       let studentRole = #Student(studentId);
-      let studentUserResult = await registerUser(caller, email, firstName, lastName, studentRole);
+      // let studentUserResult = await registerUser(caller, email, firstName, lastName, studentRole);
+      let studentUserResult = await registerUser(caller, email, studentRole);
       
       let studentUser = switch (studentUserResult) {
         case (#ok(user)) { user };

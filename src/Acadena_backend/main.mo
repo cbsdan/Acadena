@@ -46,7 +46,7 @@ actor Acadena {
   private stable var nextDocumentId : Nat = 1;
   private stable var nextTransactionId : Nat = 1;
   private stable var nextUserId : Nat = 1;
-  private stable var nextRequestId : Nat = 1;
+  private stable var _nextRequestId : Nat = 1;
 
   // Storage - Data maps
   private var institutions = Map.HashMap<InstitutionId, Institution>(10, Text.equal, Text.hash);
@@ -98,25 +98,24 @@ actor Acadena {
   private func registerUserForInstitution(
     caller : Principal,
     email : Text,
-    firstName : Text,
-    lastName : Text,
+    // firstName : Text,
+    // lastName : Text,
     role : UserRole,
   ) : async Result.Result<User, Error> {
-    await userService.registerUser(caller, email, firstName, lastName, role);
+    await userService.registerUser(caller, email, role);
+    // await userService.registerUser(caller, email, firstName, lastName, role);
   };
 
   // Wrapper function for student service - matches expected signature
   private func registerUserForStudent(
     caller : Principal,
     email : Text,
-    firstName : Text,
-    lastName : Text,
+    // firstName : Text,
+    // lastName : Text,
     role : UserRole,
   ) : async Result.Result<User, Error> {
-    // Students module doesn't use caller principal - it handles authentication internally
-    // Using a hardcoded principal for now, but the Students module will handle proper auth
-    // let defaultPrincipal = Principal.fromText("2vxsx-fae");
-    await userService.registerUser(caller, email, firstName, lastName, role);
+    // await userService.registerUser(caller, email, firstName, lastName, role);
+    await userService.registerUser(caller, email, role);
   };
 
   private let invitationService = Invitations.InvitationService(
@@ -210,11 +209,12 @@ actor Acadena {
   // User Management Functions
   public shared (msg) func registerUser(
     email : Text,
-    firstName : Text,
-    lastName : Text,
+    // firstName : Text,
+    // lastName : Text,
     role : UserRole,
   ) : async Result.Result<User, Error> {
-    await userService.registerUser(msg.caller, email, firstName, lastName, role);
+    // await userService.registerUser(msg.caller, email, firstName, lastName, role);
+    await userService.registerUser(msg.caller, email, role);
   };
 
   public shared (msg) func getCurrentUserInfo() : async ?User {
@@ -222,7 +222,7 @@ actor Acadena {
     await userService.getCurrentUserInfo(msg.caller);
   };
 
-  public shared (msg) func getAllUsers() : async Result.Result<[User], Error> {
+  public shared (_msg) func getAllUsers() : async Result.Result<[User], Error> {
     await userService.getAllUsers();
   };
 
@@ -236,8 +236,6 @@ actor Acadena {
     accreditationNumber : Text,
     website : ?Text,
     description : ?Text,
-    adminFirstName : Text,
-    adminLastName : Text,
     adminEmail : Text,
   ) : async Result.Result<(Institution, User), Error> {
     await institutionService.registerInstitutionWithAdmin(
@@ -250,11 +248,37 @@ actor Acadena {
       accreditationNumber,
       website,
       description,
-      adminFirstName,
-      adminLastName,
       adminEmail,
     );
   };
+  // public shared (msg) func registerInstitutionWithAdmin(
+  //   name : Text,
+  //   institutionType : InstitutionType,
+  //   address : Text,
+  //   contactEmail : Text,
+  //   contactPhone : Text,
+  //   accreditationNumber : Text,
+  //   website : ?Text,
+  //   description : ?Text,
+  //   adminFirstName : Text,
+  //   adminLastName : Text,
+  //   adminEmail : Text,
+  // ) : async Result.Result<(Institution, User), Error> {
+  //   await institutionService.registerInstitutionWithAdmin(
+  //     msg.caller,
+  //     name,
+  //     institutionType,
+  //     address,
+  //     contactEmail,
+  //     contactPhone,
+  //     accreditationNumber,
+  //     website,
+  //     description,
+  //     adminFirstName,
+  //     adminLastName,
+  //     adminEmail,
+  //   );
+  // };
 
   public func registerInstitution(
     name : Text,

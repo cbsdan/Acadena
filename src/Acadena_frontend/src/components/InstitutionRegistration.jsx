@@ -303,7 +303,7 @@ const InstitutionRegistration = ({
                 Administrator Details
               </h3>
 
-              <div className="form-row">
+              {/* <div className="form-row">
                 <div className="form-group">
                   <label htmlFor="adminFirstName" className="form-label">Admin First Name *</label>
                   <input
@@ -329,7 +329,7 @@ const InstitutionRegistration = ({
                     placeholder="Last name"
                   />
                 </div>
-              </div>
+              </div> */}
 
               <div className="form-group">
                 <label htmlFor="adminEmail" className="form-label">Admin Email *</label>
