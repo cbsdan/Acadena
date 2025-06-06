@@ -192,4 +192,106 @@ export const documentHandlers = {
       setLoading(false);
     }
   },
+
+  fetchDocumentsByStudent: async (studentId, setDocuments, setLoading) => {
+    setLoading(true);
+    try {
+      const actor = internetIdentityService.getActor();
+      const result = await actor.getDocumentsByStudent(studentId);
+      if ('ok' in result) {
+        setDocuments(result.ok);
+        return result.ok;
+      } else {
+        console.error('Error fetching student documents:', result.err);
+        setDocuments([]);
+        return [];
+      }
+    } catch (error) {
+      console.error('Error fetching student documents:', error);
+      setDocuments([]);
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  },
+
+  getDocumentById: async (documentId) => {
+    try {
+      const result = await Acadena_backend.getDocument(documentId);
+      if ('ok' in result) {
+        return result.ok;
+      } else {
+        console.error('Error fetching document by ID:', result.err);
+        return null;
+      }
+    } catch (error) {
+      console.error('Error fetching document by ID:', error);
+      return null;
+    }
+  },
+
+  verifyDocument: async (documentId, setLoading) => {
+    if (setLoading) setLoading(true);
+    try {
+      const result = await Acadena_backend.verifyDocument(documentId);
+      if ('ok' in result) {
+        return result.ok;
+      } else {
+        console.error('Error verifying document:', result.err);
+        return false;
+      }
+    } catch (error) {
+      console.error('Error verifying document:', error);
+      return false;
+    } finally {
+      if (setLoading) setLoading(false);
+    }
+  },
+
+  downloadDocument: async (documentData) => {
+    try {
+      // Create downloadable content with document metadata and content
+      const documentContent = `
+ACADENA DOCUMENT VERIFICATION REPORT
+====================================
+
+Document Details:
+- Title: ${documentData.title}
+- Type: ${Object.keys(documentData.documentType)[0] || 'Unknown'}
+- Document ID: ${documentData.id}
+- Issue Date: ${new Date(Number(documentData.issueDate) / 1000000).toLocaleDateString()}
+- Issuing Institution: ${documentData.issuingInstitutionId}
+- Verification Status: ${documentData.isVerified ? 'VERIFIED ✓' : 'PENDING VERIFICATION'}
+
+Digital Signature:
+${documentData.signature}
+
+Document Content:
+${documentData.content || 'No content available'}
+
+${documentData.description ? `\nDescription:\n${documentData.description}` : ''}
+
+---
+This document was generated from the Acadena blockchain-based document verification system.
+Verification can be performed using the document ID and digital signature.
+Generated on: ${new Date().toLocaleString()}
+      `.trim();
+
+      // Create and download the file using global window.document
+      const blob = new Blob([documentContent], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = window.document.createElement('a');
+      a.href = url;
+      a.download = `${documentData.title.replace(/[^a-zA-Z0-9]/g, '_')}_${documentData.id}.txt`;
+      window.document.body.appendChild(a);
+      a.click();
+      window.document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      return true;
+    } catch (error) {
+      console.error('Error downloading document:', error);
+      return false;
+    }
+  },
 };
