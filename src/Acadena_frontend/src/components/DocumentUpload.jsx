@@ -7,7 +7,39 @@ const DocumentUpload = ({
   handleDocumentUpload,
   students,
   loading
-}) => (
+}) => {
+  const [successModal, setSuccessModal] = React.useState({
+    isOpen: false,
+    document: null,
+    token: '',
+    student: '',
+    documentType: '',
+    title: ''
+  });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const student = students.find(s => s.id === uploadForm.studentId);
+    const studentName = student ? `${student.firstName} ${student.lastName}` : '';
+    
+    try {
+      const result = await handleDocumentUpload(e);
+      if (result?.document && result?.token) {
+        setSuccessModal({
+          isOpen: true,
+          document: result.document,
+          token: result.token,
+          student: studentName,
+          documentType: uploadForm.documentType,
+          title: uploadForm.title
+        });
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+    }
+  };
+
+  return (
   <div className="document-management-container">
     <div className="document-background">
       <div className="floating-elements">
@@ -39,7 +71,7 @@ const DocumentUpload = ({
       </div>
 
       <div className="upload-container">
-        <form onSubmit={handleDocumentUpload} className="document-form upload-form">
+        <form onSubmit={handleSubmit} className="document-form upload-form">
           <div className="form-section">
             <div className="section-title">
               <svg viewBox="0 0 24 24" fill="none">
@@ -226,6 +258,15 @@ const DocumentUpload = ({
           </div>
         </form>
 
+      <SuccessModal 
+        isOpen={successModal.isOpen}
+        onClose={() => setSuccessModal({ ...successModal, isOpen: false })}
+        document={successModal.document}
+        token={successModal.token}
+        student={successModal.student}
+        documentType={successModal.documentType}
+        title={successModal.title}
+      />
         <div className="upload-help-section">
           <div className="help-card">
             <div className="help-icon">
@@ -274,6 +315,58 @@ const DocumentUpload = ({
       </div>
     </div>
   </div>
-);
+  );
+};
+
+const SuccessModal = ({ isOpen, onClose, document, token, student, documentType, title }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="document-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="document-modal-header">
+          <h3>Document Uploaded Successfully!</h3>
+          <button className="close-modal" onClick={onClose}>
+            <svg viewBox="0 0 24 24" fill="none">
+              <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" strokeWidth="2" />
+              <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" strokeWidth="2" />
+            </svg>
+          </button>
+        </div>
+        <div className="document-modal-body">
+          <div className="success-icon">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="#22C55E" strokeWidth="2"/>
+              <polyline points="22,4 12,14.01 9,11.01" stroke="#22C55E" strokeWidth="2"/>
+            </svg>
+          </div>
+          <div className="document-details">
+            <div className="detail-item">
+              <strong>Document Type:</strong> {documentType}
+            </div>
+            <div className="detail-item">
+              <strong>Title:</strong> {title}
+            </div>
+            <div className="detail-item">
+              <strong>Student:</strong> {student}
+            </div>
+            <div className="token-info">
+              <strong>Verification Token:</strong>
+              <code>{token}</code>
+            </div>
+          </div>
+        </div>
+          <div className="document-modal-footer">
+            <button className="modal-action-button" onClick={onClose}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M5 13l4 4L19 7" />
+              </svg>
+              Done
+            </button>
+          </div>
+      </div>
+    </div>
+  );
+};
 
 export default DocumentUpload;

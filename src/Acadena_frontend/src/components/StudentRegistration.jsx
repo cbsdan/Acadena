@@ -7,7 +7,35 @@ const StudentRegistration = ({
   setStudentForm, 
   handleStudentSubmit, 
   loading 
-}) => (
+}) => {
+  const [successModal, setSuccessModal] = React.useState({
+    isOpen: false,
+    student: null,
+    invitationCode: '',
+  });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const result = await handleStudentSubmit(
+        e,
+        studentForm,
+        setStudentForm,
+        loading
+      );
+      if (result?.student && result?.invitationCode) {
+        setSuccessModal({
+          isOpen: true,
+          student: result.student,
+          invitationCode: result.invitationCode
+        });
+      }
+    } catch (error) {
+      console.error('Registration error:', error);
+    }
+};
+
+return (
   <div className="student-registration-container">
     <div className="registration-background">
       <div className="floating-elements">
@@ -32,7 +60,7 @@ const StudentRegistration = ({
           <p>Register a new student to the academic system</p>
         </div>
 
-        <form onSubmit={handleStudentSubmit} className="registration-form">
+        <form onSubmit={handleSubmit} className="registration-form">
           <div className="form-row">
             <div className="form-group">
               <label htmlFor="firstName">
@@ -170,7 +198,14 @@ const StudentRegistration = ({
           </button>
         </form>
       </div>
-
+      {/* Add this before the closing div of student-registration-container */}
+      <SuccessModal 
+        isOpen={successModal.isOpen}
+        onClose={() => setSuccessModal({ ...successModal, isOpen: false })}
+        student={successModal.student}
+        invitationCode={successModal.invitationCode}
+      />
+    </div>
       {/* Right Side - Image */}
       <div className="image-section">
         <div className="image-container">
@@ -209,7 +244,64 @@ const StudentRegistration = ({
         </div>
       </div>
     </div>
-  </div>
-);
+
+  );           
+};
+
+
+const SuccessModal = ({ isOpen, onClose, student, invitationCode }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="document-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="document-modal-header">
+          <h3>Student Registered Successfully!</h3>
+          <button className="close-modal" onClick={onClose}>
+            <svg viewBox="0 0 24 24" fill="none">
+              <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" strokeWidth="2" />
+              <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" strokeWidth="2" />
+            </svg>
+          </button>
+        </div>
+        <div className="document-modal-body">
+          <div className="success-icon">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="#22C55E" strokeWidth="2"/>
+              <polyline points="22,4 12,14.01 9,11.01" stroke="#22C55E" strokeWidth="2"/>
+            </svg>
+          </div>
+          <div className="document-details">
+            <div className="detail-item">
+              <strong>Student Name:</strong> {student?.firstName} {student?.lastName}
+            </div>
+            <div className="detail-item">
+              <strong>Student Number:</strong> {student?.studentNumber}
+            </div>
+            <div className="detail-item">
+              <strong>Program:</strong> {student?.program}
+            </div>
+            <div className="token-info">
+              <strong>Invitation Code:</strong>
+              <code>{invitationCode}</code>
+              <p className="invitation-note">
+                Please share this invitation code with the student to claim their account using Internet Identity.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div className="document-modal-footer">
+          <button className="modal-action-button" onClick={onClose}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M5 13l4 4L19 7" />
+            </svg>
+            Done
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 
 export default StudentRegistration;
