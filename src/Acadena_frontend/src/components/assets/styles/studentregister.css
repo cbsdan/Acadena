@@ -99,10 +99,17 @@
   padding: 3rem;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
+  /* Changed from center to flex-start */
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   border-right: 1px solid rgba(255, 255, 255, 0.3);
+  height: 100%;
+  /* Added height */
+  min-height: 100vh;
+  /* Added minimum height */
+  overflow-y: auto;
+  /* Added scroll if content is too long */
 }
 
 .form-header {

@@ -199,13 +199,7 @@ return (
         </form>
       </div>
       {/* Add this before the closing div of student-registration-container */}
-      <SuccessModal 
-        isOpen={successModal.isOpen}
-        onClose={() => setSuccessModal({ ...successModal, isOpen: false })}
-        student={successModal.student}
-        invitationCode={successModal.invitationCode}
-      />
-    </div>
+   
       {/* Right Side - Image */}
       <div className="image-section">
         <div className="image-container">
@@ -243,6 +237,13 @@ return (
           </div>
         </div>
       </div>
+         <SuccessModal 
+        isOpen={successModal.isOpen}
+        onClose={() => setSuccessModal({ ...successModal, isOpen: false })}
+        student={successModal.student}
+        invitationCode={successModal.invitationCode}
+      />
+    </div>
     </div>
 
   );           
