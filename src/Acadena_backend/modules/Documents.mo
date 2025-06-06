@@ -45,6 +45,8 @@ import Types "./Types";
 import Blob "mo:base/Blob";
 import Nat32 "mo:base/Nat32";
 import Hash "mo:base/Hash"; // If you want to hash for token
+import Debug "mo:base/Debug";
+import Bool "mo:base/Bool";
 
 module Documents {
 
@@ -63,6 +65,7 @@ module Documents {
   type UploadSession = {
     studentId : StudentId;
     institutionId : InstitutionId;
+    principal : Principal; // <-- add this
     documentType : DocumentType;
     title : Text;
     description : Text;
@@ -85,6 +88,7 @@ module Documents {
 
     // 1. Start upload session
     public func startUpload(
+      caller : Principal, // <-- add this parameter
       sessionId : Text,
       studentId : StudentId,
       institutionId : InstitutionId,
@@ -94,6 +98,11 @@ module Documents {
       fileName : Text,
       fileType : Text,
     ) : async Result.Result<(), Error> {
+      let principalText = Principal.toText(caller);
+      Debug.print("🔍 DocumentService.startUpload: Received principal: " # principalText);
+      Debug.print("🔍 DocumentService.startUpload: Principal length: " # Nat.toText(Text.size(principalText)));
+      Debug.print("🔍 DocumentService.startUpload: Is anonymous (2vxsx-fae): " # Bool.toText(principalText == "2vxsx-fae"));
+
       if (uploadSessions.get(sessionId) != null) {
         return #err(#InvalidInput);
       };
@@ -102,6 +111,7 @@ module Documents {
         {
           studentId = studentId;
           institutionId = institutionId;
+          principal = caller; // use the passed-in principal
           documentType = documentType;
           title = title;
           description = description;
@@ -110,6 +120,7 @@ module Documents {
           chunks = [];
         },
       );
+
       #ok(());
     };
 
@@ -143,6 +154,9 @@ module Documents {
 
           let fileBytes = Array.flatten<Nat8>(session.chunks);
 
+          // Use the stored principal
+          let institutionPrincipal = session.principal;
+
           let newDocument : Document = {
             id = documentId;
             studentId = session.studentId;
@@ -157,6 +171,9 @@ module Documents {
             issueDate = Time.now();
             signature = signature;
             isVerified = true;
+            currentOwner = institutionPrincipal;
+            origOwner = institutionPrincipal;
+            status = "processing";
           };
 
           documents.put(documentId, newDocument);
@@ -219,6 +236,9 @@ module Documents {
       // Generate digital signature (simplified)
       let signature = "SIG_" # documentId # "_" # Nat.toText(timeNow);
 
+      // Use the institution principal as both origOwner and currentOwner
+      let institutionPrincipal = Principal.fromText(issuingInstitutionId);
+
       let newDocument : Document = {
         id = documentId;
         studentId = studentId;
@@ -226,13 +246,16 @@ module Documents {
         documentType = documentType;
         title = title;
         content = content;
-        description = null; // <-- add this line
+        description = null;
         file = null;
         fileName = null;
         fileType = null;
         issueDate = Time.now();
         signature = signature;
         isVerified = true;
+        currentOwner = institutionPrincipal;
+        origOwner = institutionPrincipal;
+        status = "processing";
       };
 
       documents.put(documentId, newDocument);
@@ -256,7 +279,6 @@ module Documents {
 
       #ok(newDocument);
     };
-
     public func getDocument(documentId : DocumentId) : Result.Result<Document, Error> {
       switch (documents.get(documentId)) {
         case (?document) { #ok(document) };
@@ -291,7 +313,7 @@ module Documents {
 
       #ok(studentDocuments);
     };
-    
+
     public func getDocumentsByInstitution(institutionId : InstitutionId) : async Result.Result<[Document], Error> {
       let documentsArray = Iter.toArray(documents.entries());
       let allDocuments = Array.map<(DocumentId, Document), Document>(documentsArray, func((_, doc)) = doc);

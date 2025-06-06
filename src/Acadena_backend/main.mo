@@ -96,7 +96,7 @@ actor Acadena {
 
   // Wrapper function for institution service - matches expected signature
   private func registerUserForInstitution(
-    caller: Principal,
+    caller : Principal,
     email : Text,
     firstName : Text,
     lastName : Text,
@@ -105,9 +105,9 @@ actor Acadena {
     await userService.registerUser(caller, email, firstName, lastName, role);
   };
 
-  // Wrapper function for student service - matches expected signature  
+  // Wrapper function for student service - matches expected signature
   private func registerUserForStudent(
-    caller: Principal,
+    caller : Principal,
     email : Text,
     firstName : Text,
     lastName : Text,
@@ -128,7 +128,7 @@ actor Acadena {
     incrementUserId,
   );
   // Document Chunked Upload Functions
-  public func startUpload(
+  public shared (msg) func startUpload(
     sessionId : Text,
     studentId : StudentId,
     institutionId : InstitutionId,
@@ -139,6 +139,7 @@ actor Acadena {
     fileType : Text,
   ) : async Result.Result<(), Error> {
     await documentService.startUpload(
+      msg.caller, // pass the caller principal
       sessionId,
       studentId,
       institutionId,
@@ -207,7 +208,7 @@ actor Acadena {
   );
 
   // User Management Functions
-  public shared(msg) func registerUser(
+  public shared (msg) func registerUser(
     email : Text,
     firstName : Text,
     lastName : Text,
@@ -216,17 +217,17 @@ actor Acadena {
     await userService.registerUser(msg.caller, email, firstName, lastName, role);
   };
 
-  public shared(msg) func getCurrentUserInfo() : async ?User {
+  public shared (msg) func getCurrentUserInfo() : async ?User {
     // Pass the actual caller from msg.caller
     await userService.getCurrentUserInfo(msg.caller);
   };
 
-  public shared(msg) func getAllUsers() : async Result.Result<[User], Error> {
+  public shared (msg) func getAllUsers() : async Result.Result<[User], Error> {
     await userService.getAllUsers();
   };
 
   // Institution Management Functions
-  public shared(msg) func registerInstitutionWithAdmin(
+  public shared (msg) func registerInstitutionWithAdmin(
     name : Text,
     institutionType : InstitutionType,
     address : Text,
@@ -240,7 +241,7 @@ actor Acadena {
     adminEmail : Text,
   ) : async Result.Result<(Institution, User), Error> {
     await institutionService.registerInstitutionWithAdmin(
-      msg.caller, 
+      msg.caller,
       name,
       institutionType,
       address,
@@ -396,7 +397,7 @@ actor Acadena {
   };
 
   // Invitation Code Management Functions
-  public shared({ caller }) func claimInvitationCode(code : Text) : async Result.Result<User, Error> {
+  public shared ({ caller }) func claimInvitationCode(code : Text) : async Result.Result<User, Error> {
     await invitationService.claimInvitationCode(caller, code);
   };
 

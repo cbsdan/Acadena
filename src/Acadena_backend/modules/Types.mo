@@ -60,7 +60,6 @@ module Types {
     adminUserId : ?UserId; // Link to institution admin user
   };
 
-  
   // TODO : NEED TO ADD THE INSTITUTION AFFILIATED FIELD
   public type Student = {
     id : StudentId;
@@ -76,8 +75,7 @@ module Types {
     userId : ?UserId; // Link to student user account
   };
 
-  public type TransferInstitute = 
-  {
+  public type TransferInstitute = {
     id : TransferId;
     studentId : StudentId;
     fromInstitutionId : InstitutionId;
@@ -96,7 +94,6 @@ module Types {
     #Other : Text;
   };
 
-
   // TODO : ADD A CURRENT OWNER OF THE DOCUMENT
   public type Document = {
     id : DocumentId;
@@ -112,8 +109,10 @@ module Types {
     issueDate : Int;
     signature : Text;
     isVerified : Bool;
+    currentOwner : Principal; // The current owner of the document
+    origOwner : Principal;
+    status : Text;
   };
-
 
   public type TransactionType = {
     #DocumentIssue;
