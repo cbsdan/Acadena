@@ -1,6 +1,10 @@
 import { useState, useCallback, useEffect } from 'react';
 import './App.css';
 
+import {Provider} from 'react-redux';
+import store from './redux/store';
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+
 // Import hooks and utilities
 import { useAuth, useData } from './hooks';
 import {
@@ -292,6 +296,8 @@ const handleDocumentUpload = (e) => {
               <span style={navStyles.navItemLabel}>{item.label}</span>
             </button>
           ))}
+       
+
         </div>
         
         <div style={navStyles.navProfile}>
@@ -474,6 +480,8 @@ const handleDocumentUpload = (e) => {
   // ...rest of your existing render logic...
   if (!isAuthenticated) {
     return (
+
+      
       <div className="app">
         <Header isAuthenticated={isAuthenticated} />
 
@@ -511,67 +519,78 @@ const handleDocumentUpload = (e) => {
   }
 
   return (
-    <div className="app">
-      <style>{mobileStyles}</style>
-      <Header 
-        handleLogout={handleLogoutWithNav} 
-        isAuthenticated={isAuthenticated} 
-      />
 
-      <ModernNavigation 
-        navItems={getNavItems()}
-        currentView={currentView}
-        setCurrentView={setCurrentView}
-      />
+    <Provider store={store}>
+      
 
-      <main className="main-content">
-        {currentView === 'dashboard' && (
-          <Dashboard
-            user={user}
-            systemStatus={systemStatus}
-            students={students}
-            documents={documents}
-            myInvitationCodes={myInvitationCodes}
+     
+        <div className="app">
+          <style>{mobileStyles}</style>
+          <Header 
+            handleLogout={handleLogoutWithNav} 
+            isAuthenticated={isAuthenticated} 
           />
-        )}
-        {currentView === 'students' && user?.role.InstitutionAdmin && (
-          <StudentRegistration
-            studentForm={studentForm}
-            setStudentForm={setStudentForm}
-            handleStudentSubmit={handleStudentSubmit}
-            loading={loading}
+
+          <ModernNavigation 
+            navItems={getNavItems()}
+            currentView={currentView}
+            setCurrentView={setCurrentView}
           />
-        )}
-        {currentView === 'documents' && user?.role.InstitutionAdmin && (
-          <DocumentManagement
-            documentForm={documentForm}
-            setDocumentForm={setDocumentForm}
-            handleDocumentSubmit={handleDocumentSubmit}
-            students={students}
-            loading={loading}
-          />
-        )}
-        {currentView === 'upload' && user?.role.InstitutionAdmin && (
-          <DocumentUpload
-            uploadForm={uploadDocumentForm}
-            setUploadForm={setUploadDocumentForm}
-            handleDocumentUpload={handleDocumentUpload}
-            students={students}
-            loading={loading}
-          />
-        )}
-       {currentView === 'institution-documents' && user?.role.InstitutionAdmin && (
-          <DocumentPerInstitution
-            institutionId={user?.role?.InstitutionAdmin}
-            documents={institutionDocuments}
-            setDocuments={setInstitutionDocuments}
-            loading={institutionDocumentsLoading}
-            setLoading={setInstitutionDocumentsLoading}
-            loadDocumentsByInstitution={loadDocumentsByInstitution}
-          />
-        )}
-      </main>
-    </div>
+
+          <main className="main-content">
+            {currentView === 'dashboard' && (
+              <Dashboard
+                user={user}
+                systemStatus={systemStatus}
+                students={students}
+                documents={documents}
+                myInvitationCodes={myInvitationCodes}
+              />
+            )}
+            {currentView === 'students' && user?.role.InstitutionAdmin && (
+              <StudentRegistration
+                studentForm={studentForm}
+                setStudentForm={setStudentForm}
+                handleStudentSubmit={handleStudentSubmit}
+                loading={loading}
+              />
+            )}
+            {currentView === 'documents' && user?.role.InstitutionAdmin && (
+              <DocumentManagement
+                documentForm={documentForm}
+                setDocumentForm={setDocumentForm}
+                handleDocumentSubmit={handleDocumentSubmit}
+                students={students}
+                loading={loading}
+              />
+            )}
+            {currentView === 'upload' && user?.role.InstitutionAdmin && (
+              <DocumentUpload
+                uploadForm={uploadDocumentForm}
+                setUploadForm={setUploadDocumentForm}
+                handleDocumentUpload={handleDocumentUpload}
+                students={students}
+                loading={loading}
+              />
+            )}
+          {currentView === 'institution-documents' && user?.role.InstitutionAdmin && (
+              <DocumentPerInstitution
+                institutionId={user?.role?.InstitutionAdmin}
+                documents={institutionDocuments}
+                setDocuments={setInstitutionDocuments}
+                loading={institutionDocumentsLoading}
+                setLoading={setInstitutionDocumentsLoading}
+                loadDocumentsByInstitution={loadDocumentsByInstitution}
+              />
+            )}
+          </main>
+        </div>
+            <Router>
+         <Routes>
+                {/* <Route path="/Transfer" element />   */}
+            </Routes>
+        </Router>
+    </Provider>
   );
 }
 

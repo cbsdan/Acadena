@@ -60,6 +60,7 @@ module Documents {
   public type Transaction = Types.Transaction;
   public type TransactionType = Types.TransactionType;
   public type Error = Types.Error;
+  public type AccessToken = Types.AccessToken;
 
   // Temporary storage for in-progress uploads
   type UploadSession = {

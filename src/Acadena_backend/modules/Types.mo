@@ -10,6 +10,7 @@ module Types {
   public type UserId = Text;
   public type TransferId = Text;
   public type TransactionId = Text;
+  public type AccessTokenId = Text;
 
   // User role types
   public type UserRole = {
@@ -175,4 +176,15 @@ module Types {
     totalTransactions : Nat;
     totalUsers : Nat;
   };
+
+  public type AccessToken = {
+    id : AccessTokenId;
+    tokenTitle: Text;
+    documentId : DocumentId;
+    userId : UserId;
+    token : Text;
+    createdDate : Int;
+    isActive : Bool;
+  };
+
 };
