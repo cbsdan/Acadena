@@ -145,8 +145,19 @@ function AppContent() {
     checkPendingRegistration();
   }, []);
 
+useEffect(() => {
+  if (
+    location.pathname === '/app' &&
+    isAuthenticated &&
+    user &&
+    (currentView === 'login' || currentView === '' || currentView == null)
+  ) {
+    setCurrentView('dashboard');
+  }
+}, [location.pathname, isAuthenticated, user, currentView]);
   // Navigation functions
-  const navigateToLanding = () => {
+  const navigateToLanding = () => 
+    {
     navigate('/');
   };
 
@@ -495,7 +506,22 @@ function AppContent() {
     
     // App routes (protected)
     if (path === '/app') {
-      if (!isAuthenticated) {
+        // Show loading spinner while authentication is being checked
+if (user == null && !isAuthenticated) {
+  // Only show global loading spinner while checking authentication
+  return (
+    <div className="app">
+      <Header isAuthenticated={isAuthenticated} />
+      <main className="main-content">
+        <div style={{ textAlign: 'center', marginTop: '3rem', color: '#888' }}>
+          Loading...
+        </div>
+      </main>
+    </div>
+  );
+}
+
+ if (!isAuthenticated || !user) {
         return (
           <div className="app">
             <Header isAuthenticated={isAuthenticated} />
