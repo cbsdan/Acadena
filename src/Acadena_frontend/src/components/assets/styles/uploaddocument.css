@@ -94,7 +94,7 @@ select, input {
   padding: 0.625rem;
   border: 1px solid var(--border);
   border-radius: 8px;
-  font-size: 0.875rem;
+  font-size: 1.15rem;
   color: var(--text-primary);
   background: var(--bg-light);
   transition: all 0.2s;
@@ -145,7 +145,7 @@ select:focus, input:focus {
 }
 
 .upload-placeholder span {
-  font-size: 0.75rem;
+  font-size: 1.25rem;
   color: var(--text-secondary);
 }
 
@@ -165,7 +165,7 @@ select:focus, input:focus {
 }
 
 .file-info span {
-  font-size: 0.75rem;
+  font-size: 1.15rem;
   color: var(--text-secondary);
 }
 
