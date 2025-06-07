@@ -6,21 +6,32 @@
   box-sizing: border-box;
 }
 
-.student-registration-container {
-  min-height: 100vh;
-  position: relative;
-  font-family: 'Nunito', sans-serif;
-  overflow: hidden;
+/* FIXED: Global overflow and body settings */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
 }
 
-/* Background */
+.student-registration-container {
+  min-height: 100vh;
+  width: 100vw; /* ADD THIS */
+  position: relative;
+  font-family: 'Nunito', sans-serif;
+  overflow-x: hidden; /* CHANGE FROM overflow: hidden */
+  box-sizing: border-box; /* ADD THIS */
+}
+
+/* FIXED: Background - Change gradient to match dashboard */
 .registration-background {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, #bad7e9 0%, #9bc5d6 50%, #7fb3c3 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); /* CHANGED */
   z-index: 1;
 }
 
@@ -32,6 +43,7 @@
   right: 0;
   bottom: 0;
   pointer-events: none;
+  z-index: 1;
 }
 
 .floating-shape {
@@ -74,42 +86,40 @@
 }
 
 @keyframes float {
-
   0%,
   100% {
     transform: translateY(0px) rotate(0deg);
   }
-
   50% {
     transform: translateY(-30px) rotate(180deg);
   }
 }
 
-/* Main Content */
+/* FIXED: Main Content - Proper sizing */
 .registration-content {
   position: relative;
   z-index: 2;
   display: grid;
   grid-template-columns: 1fr 1fr;
   min-height: 100vh;
+  width: 100%; /* ADD THIS */
+  box-sizing: border-box; /* ADD THIS */
 }
 
-/* Form Section */
+/* FIXED: Form Section - Proper sizing */
 .form-section {
   padding: 3rem;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  /* Changed from center to flex-start */
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   border-right: 1px solid rgba(255, 255, 255, 0.3);
   height: 100%;
-  /* Added height */
   min-height: 100vh;
-  /* Added minimum height */
   overflow-y: auto;
-  /* Added scroll if content is too long */
+  width: 100%; /* ADD THIS */
+  box-sizing: border-box; /* ADD THIS */
 }
 
 .form-header {
@@ -262,13 +272,12 @@
   0% {
     transform: rotate(0deg);
   }
-
   100% {
     transform: rotate(360deg);
   }
 }
 
-/* Image Section */
+/* FIXED: Image Section - Proper sizing */
 .image-section {
   position: relative;
   background: linear-gradient(135deg, rgba(43, 52, 103, 0.9) 0%, rgba(235, 69, 95, 0.9) 100%);
@@ -276,6 +285,8 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  width: 100%; /* ADD THIS */
+  box-sizing: border-box; /* ADD THIS */
 }
 
 .image-container {
@@ -348,7 +359,7 @@
   font-size: 0.95rem;
 }
 
-/* Responsive Design */
+/* FIXED: Responsive Design */
 @media (max-width: 1024px) {
   .registration-content {
     grid-template-columns: 1fr;
@@ -360,6 +371,7 @@
 
   .form-section {
     border-right: none;
+    width: 100%;
   }
 }
 
@@ -422,7 +434,6 @@
     opacity: 0;
     transform: translateY(30px);
   }
-
   to {
     opacity: 1;
     transform: translateY(0);
@@ -438,7 +449,6 @@
     opacity: 0;
     transform: translateY(20px);
   }
-
   to {
     opacity: 1;
     transform: translateY(0);
@@ -480,7 +490,6 @@
     opacity: 0;
     transform: translateY(20px);
   }
-
   to {
     opacity: 1;
     transform: translateY(0);

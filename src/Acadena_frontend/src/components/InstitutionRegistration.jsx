@@ -110,10 +110,6 @@ const InstitutionRegistration = ({
       <div className="brand-panel">
         <div className="brand-content">
           <div className="brand-header">
-            <div className="brand-logo">
-              <h1 className="brand-title">Join Acadena Today</h1>
-            </div>
-            {/* <p className="brand-tagline">Register your institution and bring academic records into the future with secure, transparent, and blockchain-powered verification</p> */}
           </div>
 
           <div className="hero-image-container">
@@ -125,7 +121,6 @@ const InstitutionRegistration = ({
             <div className="image-overlay"></div>
           </div>
 
-          {/* Additional Feature Highlights */}
           <div className="feature-highlights">
             <div className="highlight-item">
               <div className="highlight-badge">
@@ -180,7 +175,6 @@ const InstitutionRegistration = ({
         </div>
       </div>
 
-      {/* Right Panel - Registration Form */}
       <div className="form-panel">
         <div className="form-wrapper">
           <div className="form-header-modern">
@@ -189,7 +183,6 @@ const InstitutionRegistration = ({
           </div>
 
           <form onSubmit={handleInstitutionWithAdminSubmit} className="modern-form">
-            {/* Institution Details Card */}
             <div className="form-card">
               <div className="card-header">
                 <div className="card-icon institution">🏛️</div>
@@ -317,7 +310,6 @@ const InstitutionRegistration = ({
               </div>
             </div>
 
-            {/* Administrator Details Card */}
             <div className="form-card">
               <div className="card-header">
                 <div className="card-icon admin">👤</div>
@@ -342,7 +334,6 @@ const InstitutionRegistration = ({
               </div>
             </div>
 
-            {/* Action Buttons */}
             <div className="form-actions-modern">
               <button 
                 type="button" 
@@ -379,7 +370,6 @@ const InstitutionRegistration = ({
         </div>
       </div>
 
-      {/* Institution Selection Modal */}
       {showInstitutionModal && (
         <div className="modal-backdrop" onClick={closeInstitutionModal}>
           <div className="modern-modal" onClick={e => e.stopPropagation()}>
@@ -423,7 +413,6 @@ const InstitutionRegistration = ({
                 </div>
               ) : (
                 <div className="institutions-grid">
-                  {/* Manual Input Option */}
                   <div className="institution-card manual-card" onClick={handleManualInput}>
                     <div className="institution-icon manual">
                       <svg viewBox="0 0 20 20" fill="currentColor">
@@ -441,7 +430,6 @@ const InstitutionRegistration = ({
                     </div>
                   </div>
 
-                  {/* Available Institutions */}
                   {filteredInstitutions.length === 0 && institutionSearchTerm ? (
                     <div className="no-results">
                       <div className="no-results-icon">🔍</div>
