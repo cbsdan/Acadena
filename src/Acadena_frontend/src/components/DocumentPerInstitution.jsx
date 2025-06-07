@@ -63,13 +63,6 @@ const DocumentPerInstitution = ({
 
       <div className="document-content">
         <div className="document-header">
-          <div className="header-icon">
-            <svg viewBox="0 0 24 24" fill="none">
-              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" stroke="currentColor" strokeWidth="2"/>
-              <polyline points="17,21 17,13 7,13 7,21" stroke="currentColor" strokeWidth="2"/>
-              <polyline points="7,3 7,8 15,8" stroke="currentColor" strokeWidth="2"/>
-            </svg>
-          </div>
           <div className="header-content">
             <h1>Institution Documents</h1>
             <p>View and manage all documents issued by your institution</p>
