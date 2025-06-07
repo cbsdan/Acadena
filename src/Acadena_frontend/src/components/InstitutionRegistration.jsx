@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Actor, HttpAgent } from '@dfinity/agent';
 import { idlFactory, canisterId } from '../../../declarations/Acadena_backend';
 import instiRegisterImage from './assets/images/instiregister.png';
-import './assets/styles/style.css';
+import './assets/styles/institutionregister.css';
 
 const agent = new HttpAgent({ host: "http://localhost:4943" });
 if (process.env.DFX_NETWORK !== "ic") {
@@ -23,7 +23,6 @@ const InstitutionRegistration = ({
   const [institutionSearchTerm, setInstitutionSearchTerm] = useState('');
   const [loadingInstitutions, setLoadingInstitutions] = useState(false);
   const [isManualInput, setIsManualInput] = useState(false);
-
 
   useEffect(() => {
     loadAvailableInstitutions();
@@ -54,7 +53,6 @@ const InstitutionRegistration = ({
   const handleInstitutionSelect = (institution) => {
     const institutionIndex = availableInstitutions.findIndex(inst => inst.name === institution.name);
     
-
     setInstitutionWithAdminForm(prev => ({
       ...prev,
       name: institution.name,
@@ -62,7 +60,6 @@ const InstitutionRegistration = ({
       website: institution.website,
       contactPhone: institution.contact,
       contactEmail: prev.contactEmail, 
-
       accreditationNumber: `CHED_${String(institutionIndex).padStart(4, '0')}_${Date.now()}`
     }));
     
@@ -90,148 +87,169 @@ const InstitutionRegistration = ({
       address: '',
       website: '',
       contactPhone: '',
-      // Auto-generate accreditation number for manual input too
       accreditationNumber: `MANUAL_${Date.now()}_${Math.random().toString(36).substr(2, 4).toUpperCase()}`
     }));
   };
 
-
   const filteredInstitutions = availableInstitutions.filter(inst => {
-
     const isAlreadyRegistered = registeredInstitutions.some(regInst => 
       regInst.name.toLowerCase().trim() === inst.name.toLowerCase().trim()
     );
 
-    // Filter by search term
     const matchesSearch = inst.name.toLowerCase().includes(institutionSearchTerm.toLowerCase()) ||
       inst.province.toLowerCase().includes(institutionSearchTerm.toLowerCase()) ||
       inst.city.toLowerCase().includes(institutionSearchTerm.toLowerCase()) ||
       inst.region.toLowerCase().includes(institutionSearchTerm.toLowerCase());
 
-
     return matchesSearch && !isAlreadyRegistered;
   });
 
   return (
-    <div className="registration-page">
-      <div className="registration-left">
-        <div className="registration-left-content">
-          <div className="registration-image-container">
+    <div className="modern-registration-container">
+      {/* Left Panel - Brand Section */}
+      <div className="brand-panel">
+        <div className="brand-content">
+          <div className="brand-header">
+            <div className="brand-logo">
+              <h1 className="brand-title">Join Acadena Today</h1>
+            </div>
+            {/* <p className="brand-tagline">Register your institution and bring academic records into the future with secure, transparent, and blockchain-powered verification</p> */}
+          </div>
+
+          <div className="hero-image-container">
             <img 
               src={instiRegisterImage} 
               alt="Institution Registration" 
-              className="registration-image"
+              className="hero-image"
             />
-            <div className="image-glow-effect"></div>
+            <div className="image-overlay"></div>
           </div>
-          
-          <div className="registration-message">
-            <h2 className="message-title">Join Acadena Today</h2>
-            <p className="message-text">
-              Register your institution and bring academic records into the future with secure, 
-              transparent, and blockchain-powered verification.
-            </p>
-            
-            <div className="feature-highlights">
-              <div className="highlight-item">
-                <div className="highlight-icon">🔒</div>
-                <span>Secure & Immutable</span>
+
+          {/* Additional Feature Highlights */}
+          <div className="feature-highlights">
+            <div className="highlight-item">
+              <div className="highlight-badge">
+                <svg viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"/>
+                </svg>
               </div>
-              <div className="highlight-item">
-                <div className="highlight-icon">⚡</div>
-                <span>Instant Verification</span>
+              <span className="highlight-text">Secure & Immutable</span>
+            </div>
+            <div className="highlight-item">
+              <div className="highlight-badge">
+                <svg viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.293l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z"/>
+                </svg>
               </div>
-              <div className="highlight-item">
-                <div className="highlight-icon">🔗</div>
-                <span>Blockchain Stored</span>
+              <span className="highlight-text">Instant Verification</span>
+            </div>
+            <div className="highlight-item">
+              <div className="highlight-badge">
+                <svg viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z"/>
+                  <path fillRule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"/>
+                </svg>
+              </div>
+              <span className="highlight-text">Blockchain Stored</span>
+            </div>
+          </div>
+
+          <div className="feature-grid">
+            <div className="feature-card">
+              <div className="feature-icon secure">🔐</div>
+              <div className="feature-text">
+                <h4>Secure Storage</h4>
+                <p>Blockchain-secured records</p>
+              </div>
+            </div>
+            <div className="feature-card">
+              <div className="feature-icon fast">⚡</div>
+              <div className="feature-text">
+                <h4>Instant Verification</h4>
+                <p>Real-time authentication</p>
+              </div>
+            </div>
+            <div className="feature-card">
+              <div className="feature-icon global">🌐</div>
+              <div className="feature-text">
+                <h4>Global Access</h4>
+                <p>Worldwide recognition</p>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="registration-right">
-        <div className="registration-form-container">
-          <div className="form-header">
-            <h1 className="form-title">Register Institution</h1>
-            <p className="form-subtitle">Create your institution profile and admin account</p>
+      {/* Right Panel - Registration Form */}
+      <div className="form-panel">
+        <div className="form-wrapper">
+          <div className="form-header-modern">
+            <h2 className="form-title-modern">Register Your Institution</h2>
+            <p className="form-subtitle-modern">Join other institutions using blockchain verification</p>
           </div>
 
-          <form onSubmit={handleInstitutionWithAdminSubmit} className="registration-form">
-            <div className="form-section">
-              <h3 className="section-title">
-                <span className="section-icon">🏛️</span>
-                Institution Details
-              </h3>
-              
-              <div className="form-group">
-                <label htmlFor="name" className="form-label">Institution Name *</label>
-                <div className="name-input-group">
-                  <input
-                    type="text"
-                    id="name"
-                    className="form-input"
-                    value={institutionWithAdminForm.name}
-                    onChange={(e) => setInstitutionWithAdminForm({...institutionWithAdminForm, name: e.target.value})}
-                    required
-                    placeholder={isManualInput ? "Enter institution name" : "Click 'Select Institution' to choose from existing institutions"}
-                    readOnly={!isManualInput}
-                  />
-                  <button
-                    type="button"
-                    className="select-institution-btn"
-                    onClick={openInstitutionModal}
-                    title="Select from existing institutions"
-                  >
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                      <circle cx="12" cy="10" r="3"/>
-                    </svg>
-                    Select Institution
-                  </button>
+          <form onSubmit={handleInstitutionWithAdminSubmit} className="modern-form">
+            {/* Institution Details Card */}
+            <div className="form-card">
+              <div className="card-header">
+                <div className="card-icon institution">🏛️</div>
+                <div className="card-title-group">
+                  <h3 className="card-title">Institution Information</h3>
+                  <p className="card-subtitle">Basic details about your institution</p>
                 </div>
-                <small className="field-help">Select from existing CHED institutions or choose manual input</small>
               </div>
 
-              <div className="form-group">
-                <label htmlFor="institutionType" className="form-label">Institution Type *</label>
-                <select
-                  id="institutionType"
-                  className="form-select"
-                  value={institutionWithAdminForm.institutionType}
-                  onChange={(e) => setInstitutionWithAdminForm({...institutionWithAdminForm, institutionType: e.target.value})}
-                  required
-                >
-                  <option value="">Select institution type</option>
-                  <option value="University">University</option>
-                  <option value="College">College</option>
-                  <option value="HighSchool">High School</option>
-                  <option value="ElementarySchool">Elementary School</option>
-                  <option value="TechnicalSchool">Technical School</option>
-                  <option value="Other">Other</option>
-                </select>
-              </div>
+              <div className="form-grid">
+                <div className="input-group full-width">
+                  <label className="modern-label">Institution Name *</label>
+                  <div className="input-with-button">
+                    <input
+                      type="text"
+                      className="modern-input"
+                      value={institutionWithAdminForm.name}
+                      onChange={(e) => setInstitutionWithAdminForm({...institutionWithAdminForm, name: e.target.value})}
+                      required
+                      placeholder={isManualInput ? "Enter institution name" : "Select from existing institutions"}
+                      readOnly={!isManualInput}
+                    />
+                    <button
+                      type="button"
+                      className="select-btn"
+                      onClick={openInstitutionModal}
+                      title="Select from existing institutions"
+                    >
+                      <svg viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                      </svg>
+                      Browse
+                    </button>
+                  </div>
+                  <span className="input-helper">Choose from CHED registered institutions or enter manually</span>
+                </div>
 
-              <div className="form-group">
-                <label htmlFor="address" className="form-label">Address *</label>
-                <textarea
-                  id="address"
-                  className="form-textarea"
-                  value={institutionWithAdminForm.address}
-                  onChange={(e) => setInstitutionWithAdminForm({...institutionWithAdminForm, address: e.target.value})}
-                  required
-                  placeholder="Enter complete address"
-                  rows="3"
-                />
-              </div>
+                <div className="input-group">
+                  <label className="modern-label">Institution Type *</label>
+                  <select
+                    className="modern-select"
+                    value={institutionWithAdminForm.institutionType}
+                    onChange={(e) => setInstitutionWithAdminForm({...institutionWithAdminForm, institutionType: e.target.value})}
+                    required
+                  >
+                    <option value="">Choose type</option>
+                    <option value="University">University</option>
+                    <option value="College">College</option>
+                    <option value="HighSchool">High School</option>
+                    <option value="ElementarySchool">Elementary School</option>
+                    <option value="TechnicalSchool">Technical School</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
 
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="contactEmail" className="form-label">Contact Email *</label>
+                <div className="input-group">
+                  <label className="modern-label">Contact Email *</label>
                   <input
                     type="email"
-                    id="contactEmail"
-                    className="form-input"
+                    className="modern-input"
                     value={institutionWithAdminForm.contactEmail}
                     onChange={(e) => setInstitutionWithAdminForm({...institutionWithAdminForm, contactEmail: e.target.value})}
                     required
@@ -239,55 +257,57 @@ const InstitutionRegistration = ({
                   />
                 </div>
 
-                <div className="form-group">
-                  <label htmlFor="contactPhone" className="form-label">Contact Phone *</label>
+                <div className="input-group">
+                  <label className="modern-label">Contact Phone *</label>
                   <input
                     type="tel"
-                    id="contactPhone"
-                    className="form-input"
+                    className="modern-input"
                     value={institutionWithAdminForm.contactPhone}
                     onChange={(e) => setInstitutionWithAdminForm({...institutionWithAdminForm, contactPhone: e.target.value})}
                     required
                     placeholder="+1 (555) 123-4567"
                   />
                 </div>
-              </div>
 
-              <div className="form-group">
-                <label htmlFor="accreditationNumber" className="form-label">Accreditation Number *</label>
-                <input
-                  type="text"
-                  id="accreditationNumber"
-                  className="form-input"
-                  value={institutionWithAdminForm.accreditationNumber}
-                  onChange={(e) => setInstitutionWithAdminForm({...institutionWithAdminForm, accreditationNumber: e.target.value})}
-                  required
-                  placeholder="Auto-generated accreditation number"
-                  readOnly={true} 
-                />
-                <small className="field-help">
-                  Auto-generated unique accreditation number
-                </small>
-              </div>
+                <div className="input-group full-width">
+                  <label className="modern-label">Address *</label>
+                  <textarea
+                    className="modern-textarea"
+                    value={institutionWithAdminForm.address}
+                    onChange={(e) => setInstitutionWithAdminForm({...institutionWithAdminForm, address: e.target.value})}
+                    required
+                    placeholder="Complete institutional address"
+                    rows="3"
+                  />
+                </div>
 
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="website" className="form-label">Website</label>
+                <div className="input-group">
+                  <label className="modern-label">Website</label>
                   <input
                     type="url"
-                    id="website"
-                    className="form-input"
+                    className="modern-input"
                     value={institutionWithAdminForm.website}
                     onChange={(e) => setInstitutionWithAdminForm({...institutionWithAdminForm, website: e.target.value})}
                     placeholder="https://www.institution.edu"
                   />
                 </div>
 
-                <div className="form-group">
-                  <label htmlFor="description" className="form-label">Description</label>
+                <div className="input-group">
+                  <label className="modern-label">Accreditation Number *</label>
+                  <input
+                    type="text"
+                    className="modern-input readonly"
+                    value={institutionWithAdminForm.accreditationNumber}
+                    readOnly
+                    placeholder="Auto-generated"
+                  />
+                  <span className="input-helper">Automatically generated unique identifier</span>
+                </div>
+
+                <div className="input-group full-width">
+                  <label className="modern-label">Description</label>
                   <textarea
-                    id="description"
-                    className="form-textarea"
+                    className="modern-textarea"
                     value={institutionWithAdminForm.description}
                     onChange={(e) => setInstitutionWithAdminForm({...institutionWithAdminForm, description: e.target.value})}
                     placeholder="Brief description of your institution"
@@ -297,209 +317,167 @@ const InstitutionRegistration = ({
               </div>
             </div>
 
-            <div className="form-section">
-              <h3 className="section-title">
-                <span className="section-icon">👤</span>
-                Administrator Details
-              </h3>
-
-              {/* <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="adminFirstName" className="form-label">Admin First Name *</label>
-                  <input
-                    type="text"
-                    id="adminFirstName"
-                    className="form-input"
-                    value={institutionWithAdminForm.adminFirstName}
-                    onChange={(e) => setInstitutionWithAdminForm({...institutionWithAdminForm, adminFirstName: e.target.value})}
-                    required
-                    placeholder="First name"
-                  />
+            {/* Administrator Details Card */}
+            <div className="form-card">
+              <div className="card-header">
+                <div className="card-icon admin">👤</div>
+                <div className="card-title-group">
+                  <h3 className="card-title">Administrator Account</h3>
                 </div>
+              </div>
 
-                <div className="form-group">
-                  <label htmlFor="adminLastName" className="form-label">Admin Last Name *</label>
+              <div className="form-grid">
+                <div className="input-group full-width">
+                  <label className="modern-label">Administrator Email *</label>
                   <input
-                    type="text"
-                    id="adminLastName"
-                    className="form-input"
-                    value={institutionWithAdminForm.adminLastName}
-                    onChange={(e) => setInstitutionWithAdminForm({...institutionWithAdminForm, adminLastName: e.target.value})}
+                    type="email"
+                    className="modern-input"
+                    value={institutionWithAdminForm.adminEmail}
+                    onChange={(e) => setInstitutionWithAdminForm({...institutionWithAdminForm, adminEmail: e.target.value})}
                     required
-                    placeholder="Last name"
+                    placeholder="admin@institution.edu"
                   />
+                  <span className="input-helper">This will be used to access the admin dashboard</span>
                 </div>
-              </div> */}
-
-              <div className="form-group">
-                <label htmlFor="adminEmail" className="form-label">Admin Email *</label>
-                <input
-                  type="email"
-                  id="adminEmail"
-                  className="form-input"
-                  value={institutionWithAdminForm.adminEmail}
-                  onChange={(e) => setInstitutionWithAdminForm({...institutionWithAdminForm, adminEmail: e.target.value})}
-                  required
-                  placeholder="admin@institution.edu"
-                />
               </div>
             </div>
 
-            <div className="form-actions">
-              <button type="submit" disabled={loading} className="primary-button submit-btn">
-                <span className="button-content">
-                  {loading ? (
-                    <>
-                      <div className="spinner"></div>
-                      Creating Institution...
-                    </>
-                  ) : (
-                    <>
-                      <svg className="button-icon" viewBox="0 0 24 24" fill="none">
-                        <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                      Create Institution & Admin
-                    </>
-                  )}
-                </span>
-                <div className="button-shine"></div>
-              </button>
-              
-              <button type="button" onClick={() => setCurrentView('login')} className="secondary-button back-btn">
-                <svg className="button-icon" viewBox="0 0 24 24" fill="none">
-                  <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            {/* Action Buttons */}
+            <div className="form-actions-modern">
+              <button 
+                type="button" 
+                onClick={() => setCurrentView('login')} 
+                className="btn-secondary"
+              >
+                <svg viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"/>
                 </svg>
                 Back to Login
+              </button>
+              
+              <button 
+                type="submit" 
+                disabled={loading} 
+                className="btn-primary"
+              >
+                {loading ? (
+                  <>
+                    <div className="loading-spinner"></div>
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <svg viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"/>
+                    </svg>
+                    Create Institution
+                  </>
+                )}
               </button>
             </div>
           </form>
         </div>
       </div>
+
+      {/* Institution Selection Modal */}
       {showInstitutionModal && (
-        <div className="modal-overlay" onClick={closeInstitutionModal}>
-          <div className="institution-modal-container" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3 className="modal-title">
-                <svg className="modal-icon" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="currentColor" strokeWidth="2"/>
-                  <path d="m2 17 10 5 10-5" stroke="currentColor" strokeWidth="2"/>
-                  <path d="m2 12 10 5 10-5" stroke="currentColor" strokeWidth="2"/>
+        <div className="modal-backdrop" onClick={closeInstitutionModal}>
+          <div className="modern-modal" onClick={e => e.stopPropagation()}>
+            <div className="modal-header-modern">
+              <h3 className="modal-title-modern">
+                <svg viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.75 2.524z"/>
                 </svg>
                 Select Institution
               </h3>
-              <button className="modal-close" onClick={closeInstitutionModal}>
-                <svg viewBox="0 0 24 24" fill="none">
-                  <line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" strokeWidth="2"/>
-                  <line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" strokeWidth="2"/>
+              <button className="modal-close-btn" onClick={closeInstitutionModal}>
+                <svg viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"/>
                 </svg>
               </button>
             </div>
 
-            <div className="modal-search">
-              <div className="search-wrapper">
-                <svg className="search-icon" viewBox="0 0 24 24" fill="none">
-                  <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2"/>
-                  <path d="m21 21-4.35-4.35" stroke="currentColor" strokeWidth="2"/>
+            <div className="modal-search-section">
+              <div className="search-input-wrapper">
+                <svg className="search-icon" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"/>
                 </svg>
                 <input
                   type="text"
-                  placeholder="Search institutions..."
+                  placeholder="Search institutions by name, city, or province..."
                   value={institutionSearchTerm}
                   onChange={(e) => setInstitutionSearchTerm(e.target.value)}
-                  className="search-input"
+                  className="search-input-modern"
                 />
               </div>
-              <div className="search-results-count">
-                {filteredInstitutions.length} available institutions 
-                {registeredInstitutions.length > 0 && 
-                  ` (${availableInstitutions.length - filteredInstitutions.length} already registered)`
-                }
+              <div className="search-results-info">
+                {filteredInstitutions.length} institutions available
               </div>
             </div>
 
-            <div className="modal-body">
+            <div className="modal-content-modern">
               {loadingInstitutions ? (
-                <div className="loading-container">
-                  <div className="loading-spinner"></div>
-                  <div className="loading-text">Loading institutions...</div>
+                <div className="loading-state">
+                  <div className="loading-spinner large"></div>
+                  <p>Loading institutions...</p>
                 </div>
               ) : (
-                <div className="institutions-list">
+                <div className="institutions-grid">
                   {/* Manual Input Option */}
-                  <div 
-                    className="institution-row manual-input-row"
-                    onClick={handleManualInput}
-                  >
-                    <div className="institution-row-icon">
-                      <svg viewBox="0 0 24 24" fill="none">
-                        <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2"/>
+                  <div className="institution-card manual-card" onClick={handleManualInput}>
+                    <div className="institution-icon manual">
+                      <svg viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"/>
                       </svg>
                     </div>
-                    <div className="institution-row-content">
-                      <div className="institution-row-name">Manual Input</div>
-                      <div className="institution-row-location">
-                        <svg className="location-icon" viewBox="0 0 24 24" fill="none">
-                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" strokeWidth="2"/>
-                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" strokeWidth="2"/>
-                        </svg>
-                        Enter institution details manually
-                      </div>
+                    <div className="institution-info">
+                      <h4 className="institution-name">Manual Entry</h4>
+                      <p className="institution-location">Enter details manually</p>
                     </div>
-                    <div className="institution-row-arrow">
-                      <svg viewBox="0 0 24 24" fill="none">
-                        <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2"/>
+                    <div className="select-arrow">
+                      <svg viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"/>
                       </svg>
                     </div>
                   </div>
 
-                  {/* Show message if no institutions available */}
-                  {filteredInstitutions.length === 0 && institutionSearchTerm && (
-                    <div className="no-results-container" style={{
-                      padding: '2rem',
-                      textAlign: 'center',
-                      color: 'var(--text-secondary)'
-                    }}>
-                      <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>🔍</div>
-                      <div style={{ fontWeight: '600', marginBottom: '0.5rem' }}>No institutions found</div>
-                      <div style={{ fontSize: '0.9rem' }}>
-                        Try adjusting your search or use manual input to add a new institution.
-                      </div>
+                  {/* Available Institutions */}
+                  {filteredInstitutions.length === 0 && institutionSearchTerm ? (
+                    <div className="no-results">
+                      <div className="no-results-icon">🔍</div>
+                      <h4>No institutions found</h4>
+                      <p>Try adjusting your search or use manual entry</p>
                     </div>
-                  )}
-                  {filteredInstitutions.map((inst, idx) => (
-                    <div 
-                      key={idx} 
-                      className="institution-row"
-                      onClick={() => handleInstitutionSelect(inst)}
-                    >
-                      <div className="institution-row-icon">
-                        <svg viewBox="0 0 24 24" fill="none">
-                          <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="currentColor" strokeWidth="2"/>
-                          <path d="m2 17 10 5 10-5" stroke="currentColor" strokeWidth="2"/>
-                          <path d="m2 12 10 5 10-5" stroke="currentColor" strokeWidth="2"/>
-                        </svg>
-                      </div>
-                      <div className="institution-row-content">
-                        <div className="institution-row-name">{inst.name}</div>
-                        <div className="institution-row-location">
-                          <svg className="location-icon" viewBox="0 0 24 24" fill="none">
-                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" stroke="currentColor" strokeWidth="2"/>
-                            <circle cx="12" cy="10" r="3" stroke="currentColor" strokeWidth="2"/>
+                  ) : (
+                    filteredInstitutions.map((inst, idx) => (
+                      <div 
+                        key={idx} 
+                        className="institution-card"
+                        onClick={() => handleInstitutionSelect(inst)}
+                      >
+                        <div className="institution-icon">
+                          <svg viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3z"/>
                           </svg>
-                          {inst.city}, {inst.province}, {inst.region}
                         </div>
-                        <div className="institution-row-details">
-                          <span className="detail-item">📞 {inst.contact}</span>
-                          <span className="detail-item">🌐 {inst.website}</span>
+                        <div className="institution-info">
+                          <h4 className="institution-name">{inst.name}</h4>
+                          <p className="institution-location">
+                            {inst.city}, {inst.province}
+                          </p>
+                          <div className="institution-details">
+                            {inst.contact && <span>📞 {inst.contact}</span>}
+                            {inst.website && <span>🌐 {inst.website}</span>}
+                          </div>
+                        </div>
+                        <div className="select-arrow">
+                          <svg viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"/>
+                          </svg>
                         </div>
                       </div>
-                      <div className="institution-row-arrow">
-                        <svg viewBox="0 0 24 24" fill="none">
-                          <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2"/>
-                        </svg>
-                      </div>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </div>
               )}
             </div>
