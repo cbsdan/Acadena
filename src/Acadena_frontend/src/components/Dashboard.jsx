@@ -117,13 +117,6 @@ const Dashboard = ({
             </svg>
             <span className="notification-dot"></span>
           </button>
-          <button className="action-btn help">
-            <svg viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
-              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" stroke="currentColor" strokeWidth="2"/>
-              <circle cx="12" cy="17" r="1" fill="currentColor"/>
-            </svg>
-          </button>
         </div>
       </div>
 
@@ -134,10 +127,6 @@ const Dashboard = ({
         <div className="content-section">
           <div className="section-header">
             <h2 className="section-title">
-              <svg className="section-icon" viewBox="0 0 24 24" fill="none">
-                <path d="M22 10v6M2 10l10-5 10 5-10 5z" stroke="currentColor" strokeWidth="2"/>
-                <path d="M6 12v5c3 0 9-1 9-5" stroke="currentColor" strokeWidth="2"/>
-              </svg>
               Students
             </h2>
             <div className="section-actions">
@@ -241,10 +230,6 @@ const Dashboard = ({
         <div className="content-section">
           <div className="section-header">
             <h2 className="section-title">
-              <svg className="section-icon" viewBox="0 0 24 24" fill="none">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" stroke="currentColor" strokeWidth="2"/>
-                <polyline points="14,2 14,8 20,8" stroke="currentColor" strokeWidth="2"/>
-              </svg>
               My Documents
             </h2>
             <div className="section-actions">
@@ -323,11 +308,6 @@ const Dashboard = ({
         <div className="content-section">
           <div className="section-header">
             <h2 className="section-title">
-              <svg className="section-icon" viewBox="0 0 24 24" fill="none">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" stroke="currentColor" strokeWidth="2"/>
-                <circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="2"/>
-                <path d="M22 11l-3-3m0 0l-3 3m3-3v12" stroke="currentColor" strokeWidth="2"/>
-              </svg>
               Invitation Codes
             </h2>
             <div className="section-actions">

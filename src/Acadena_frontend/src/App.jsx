@@ -278,15 +278,15 @@ const navigateToApp = () => {
 
   // Navigation items
   const getNavItems = () => {
-    const items = [{ key: 'dashboard', label: 'Dashboard', icon: '📊' }];
+    const items = [{ key: 'dashboard', label: 'Dashboard' }];
     
     if (user?.role.InstitutionAdmin) {
       items.push(
-        { key: 'students', label: 'Register Student', icon: '👥' },
-        { key: 'documents', label: 'Issue Document', icon: '📄' },
-        { key: 'upload', label: 'Upload Document', icon: '📤' },
-        { key: 'institution-documents', label: 'Institution Documents', icon: '🏛️' },
-        { key: 'Transferring-of-Students', label: 'Transferring of Students', icon: '↔️' }
+        { key: 'students', label: 'Register Student' },
+        { key: 'documents', label: 'Issue Document' },
+        { key: 'upload', label: 'Upload Document' },
+        { key: 'institution-documents', label: 'Institution Documents' },
+        { key: 'Transferring-of-Students', label: 'Transfer Students' }
       );
     }
     
@@ -297,11 +297,6 @@ const navigateToApp = () => {
   const ModernNavigation = ({ navItems, currentView, setCurrentView }) => (
     <nav style={navStyles.nav}>
       <div style={navStyles.navContainer}>
-        <div style={navStyles.navBrand}>
-          <div style={navStyles.brandIcon}>🎓</div>
-          <span style={navStyles.brandText}>Acadena</span>
-        </div>
-        
         <div style={navStyles.navItems}>
           {navItems.map((item) => (
             <button
@@ -322,8 +317,7 @@ const navigateToApp = () => {
                 }
               }}
             >
-              <span style={navStyles.navItemIcon}>{item.icon}</span>
-              <span style={navStyles.navItemLabel}>{item.label}</span>
+              {item.label}
             </button>
           ))}
         </div>
@@ -350,80 +344,56 @@ const navigateToApp = () => {
   // Navigation styles
   const navStyles = {
     nav: {
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.1)',
+      background: 'linear-gradient(135deg, #2b3467 0%, #1a1f47 100%)',
+      boxShadow: '0 2px 12px rgba(43, 52, 103, 0.15)',
       backdropFilter: 'blur(20px)',
-      border: '1px solid rgba(255, 255, 255, 0.1)',
+      border: 'none',
+      borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
       position: 'sticky',
       top: 0,
       zIndex: 100,
       padding: '0',
-      margin: '0'
+      margin: '0',
+      fontFamily: "'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
     },
     navContainer: {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
-      padding: '1rem 2rem',
+      padding: '0.75rem 2rem',
       maxWidth: '1400px',
       margin: '0 auto'
     },
-    navBrand: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: '0.75rem',
-      color: 'white',
-      fontWeight: '800',
-      fontSize: '1.25rem'
-    },
-    brandIcon: {
-      fontSize: '1.5rem',
-      background: 'rgba(255, 255, 255, 0.2)',
-      borderRadius: '12px',
-      padding: '0.5rem',
-      backdropFilter: 'blur(10px)'
-    },
-    brandText: {
-      fontFamily: "'Nunito', sans-serif",
-      letterSpacing: '0.5px'
-    },
     navItems: {
       display: 'flex',
-      gap: '0.5rem',
-      alignItems: 'center'
+      gap: '0.25rem',
+      alignItems: 'center',
+      flex: 1
     },
     navItem: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: '0.5rem',
-      padding: '0.75rem 1.25rem',
-      background: 'rgba(255, 255, 255, 0.1)',
-      border: '1px solid rgba(255, 255, 255, 0.2)',
-      borderRadius: '12px',
-      color: 'white',
-      fontSize: '0.9rem',
-      fontWeight: '600',
+      padding: '0.75rem 1.5rem',
+      background: 'transparent',
+      border: 'none',
+      borderRadius: '8px',
+      color: 'rgba(255, 255, 255, 0.8)',
+      fontSize: '0.875rem',
+      fontWeight: '500',
       cursor: 'pointer',
-      transition: 'all 0.3s ease',
+      transition: 'all 0.2s ease',
       fontFamily: "'Nunito', sans-serif",
-      backdropFilter: 'blur(10px)'
+      letterSpacing: '0.025em',
+      position: 'relative'
     },
     navItemHover: {
-      background: 'rgba(255, 255, 255, 0.2)',
-      transform: 'translateY(-2px)',
-      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)'
+      background: 'rgba(255, 255, 255, 0.08)',
+      color: 'white',
+      transform: 'translateY(-1px)'
     },
     navItemActive: {
-      background: 'rgba(255, 255, 255, 0.3)',
-      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
-      transform: 'translateY(-2px)',
-      borderColor: 'rgba(255, 255, 255, 0.4)'
-    },
-    navItemIcon: {
-      fontSize: '1rem'
-    },
-    navItemLabel: {
-      whiteSpace: 'nowrap'
+      background: 'rgba(255, 255, 255, 0.12)',
+      color: 'white',
+      fontWeight: '600',
+      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
     },
     navProfile: {
       display: 'flex',
@@ -434,16 +404,16 @@ const navigateToApp = () => {
       alignItems: 'center',
       gap: '0.75rem',
       padding: '0.5rem 1rem',
-      background: 'rgba(255, 255, 255, 0.1)',
-      borderRadius: '12px',
+      background: 'rgba(255, 255, 255, 0.08)',
+      borderRadius: '10px',
       backdropFilter: 'blur(10px)',
-      border: '1px solid rgba(255, 255, 255, 0.2)'
+      border: '1px solid rgba(255, 255, 255, 0.12)'
     },
     profileAvatar: {
       width: '36px',
       height: '36px',
       borderRadius: '50%',
-      background: 'linear-gradient(135deg, #eb455f 0%, #2b3467 100%)',
+      background: 'linear-gradient(135deg, #eb455f 0%, #d63384 100%)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -456,19 +426,36 @@ const navigateToApp = () => {
       color: 'white'
     },
     profileName: {
-      fontSize: '0.9rem',
+      fontSize: '0.875rem',
       fontWeight: '600',
-      lineHeight: '1.2'
+      lineHeight: '1.2',
+      fontFamily: "'Nunito', sans-serif"
     },
     profileRole: {
       fontSize: '0.75rem',
       opacity: '0.8',
-      fontWeight: '500'
+      fontWeight: '500',
+      fontFamily: "'Nunito', sans-serif"
     }
   };
 
   // Responsive styles for mobile
   const mobileStyles = `
+    @media (max-width: 1024px) {
+      .modern-nav-container {
+        padding: 0.75rem 1.5rem;
+      }
+      
+      .modern-nav-items {
+        gap: 0.125rem;
+      }
+      
+      .modern-nav-item {
+        padding: 0.625rem 1rem;
+        font-size: 0.8rem;
+      }
+    }
+  
     @media (max-width: 768px) {
       .modern-nav-container {
         flex-direction: column;
@@ -480,11 +467,15 @@ const navigateToApp = () => {
         flex-wrap: wrap;
         justify-content: center;
         gap: 0.5rem;
+        width: 100%;
       }
       
       .modern-nav-item {
         padding: 0.5rem 1rem;
         font-size: 0.8rem;
+        flex: 1;
+        min-width: 120px;
+        text-align: center;
       }
       
       .modern-nav-profile {
@@ -492,16 +483,45 @@ const navigateToApp = () => {
       }
     }
     
-    @media (max-width: 480px) {
+    @media (max-width: 600px) {
       .modern-nav-items {
-        grid-template-columns: 1fr 1fr;
         display: grid;
+        grid-template-columns: repeat(2, 1fr);
         gap: 0.5rem;
         width: 100%;
       }
       
-      .modern-nav-item-label {
-        display: none;
+      .modern-nav-item {
+        flex: none;
+        min-width: auto;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .modern-nav-container {
+        padding: 0.75rem;
+      }
+      
+      .modern-nav-items {
+        grid-template-columns: 1fr;
+        gap: 0.375rem;
+      }
+      
+      .modern-nav-item {
+        padding: 0.625rem;
+        font-size: 0.825rem;
+      }
+      
+      .modern-nav-profile .profile-info {
+        padding: 0.375rem 0.75rem;
+      }
+      
+      .modern-nav-profile .profile-name {
+        font-size: 0.8rem;
+      }
+      
+      .modern-nav-profile .profile-role {
+        font-size: 0.7rem;
       }
     }
   `;

@@ -1,5 +1,5 @@
 import React from 'react';
-import './assets/styles/style.css';
+import './assets/styles/invcode.css';
 
 const InvitationCodeClaim = ({ 
   invitationCodeForm, 
@@ -12,7 +12,7 @@ const InvitationCodeClaim = ({
 }) => (
   <div className="auth-page">
     <div className="auth-container">
-      <div className="auth-card invitation-claim-card">
+      <div className="auth-card">
         <div className="auth-header">
           <div className="auth-logo">
             <div className="logo-circle">
@@ -33,7 +33,7 @@ const InvitationCodeClaim = ({
                   <input
                     type="text"
                     id="invitationCode"
-                    className="form-input invitation-input"
+                    className="form-input"
                     value={invitationCodeForm.code}
                     onChange={(e) => setInvitationCodeForm({...invitationCodeForm, code: e.target.value})}
                     placeholder="Enter your invitation code"
@@ -43,7 +43,7 @@ const InvitationCodeClaim = ({
                     type="button" 
                     onClick={handleCheckInvitationCode} 
                     disabled={loading || !invitationCodeForm.code.trim()}
-                    className="secondary-button check-btn"
+                    className="secondary-button"
                   >
                     {loading ? (
                       <>
@@ -107,7 +107,7 @@ const InvitationCodeClaim = ({
 
             <div className="auth-actions">
               {invitationCodeInfo && invitationCodeInfo.isValid && (
-                <button type="submit" disabled={loading} className="primary-button claim-btn">
+                <button type="submit" disabled={loading} className="primary-button">
                   <span className="button-content">
                     {loading ? (
                       <>
