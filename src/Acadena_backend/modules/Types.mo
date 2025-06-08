@@ -180,7 +180,7 @@ module Types {
     id : AccessTokenId;
     tokenTitle: Text;
     documentId : DocumentId;
-    userId : UserId;
+    studentId : StudentId;
     token : Text;
     createdDate : Int;
     isActive : Bool;

@@ -4,7 +4,7 @@ import Result "mo:base/Result";
 import Principal "mo:base/Principal";
 import Nat "mo:base/Nat";
 import Array "mo:base/Array";
-
+import Debug "mo:base/Debug";
 // Import our modules
 import Types "./modules/Types";
 import Users "./modules/Users";
@@ -14,6 +14,10 @@ import Documents "./modules/Documents";
 import Invitations "./modules/Invitations";
 import Utils "./modules/Utils";
 import InstitutionsData "./modules/InstitutionsData";
+// import TransacCreator "modules/TransacCreator";
+
+import TransacCreator "modules/TransacCreator";
+
 
 actor Acadena {
 
@@ -56,6 +60,7 @@ actor Acadena {
   private var users = Map.HashMap<UserId, User>(1000, Text.equal, Text.hash);
   private var principalToUser = Map.HashMap<Principal, UserId>(1000, Principal.equal, Principal.hash);
   private var invitationCodes = Map.HashMap<Text, InvitationCode>(1000, Text.equal, Text.hash);
+  private var accessTokens = Map.HashMap<Types.AccessTokenId, Types.AccessToken>(1000, Text.equal, Text.hash);
 
   // ===== CHED CSV Institutions Storage =====
   stable var chedInstitutions : [CHEDInstitution] = [];
@@ -86,7 +91,15 @@ actor Acadena {
   private func incrementUserId() : () { nextUserId += 1 };
 
   // Initialize service instances
-
+     private let transactionService = TransacCreator.TransactionService(
+        transactions,
+        users,
+        principalToUser,
+        documents,
+        accessTokens, // Pass the accessTokens map
+        getNextTransactionId,
+        incrementTransactionId
+      );
   private let userService = Users.UserService(
     users,
     principalToUser,
@@ -408,6 +421,16 @@ actor Acadena {
     await documentService.getDocumentsByInstitution(institutionId);
   };
 
+  public func getDocumentsWithType(
+      filter : Text,
+      studentNumber : Text
+    ) : async Result.Result<[Document], Error> {
+     
+      Debug.print("Searching documents with filter: " # filter # " for student: " # studentNumber);
+      await transactionService.searchDocumentsByTitle(filter,studentNumber);
+    };
+    
+
   public query func getDocument(documentId : DocumentId) : async Result.Result<Document, Error> {
     documentService.getDocument(documentId);
   };
@@ -418,6 +441,11 @@ actor Acadena {
 
   public shared ({ caller }) func getDocumentsByStudent(studentId: StudentId) : async Result.Result<[Document], Error> {
     await documentService.getDocumentsByStudentInt(studentId, caller);
+  };
+
+  // Query all documents for a student that has access tokens
+  public query func getDocumentsByStudentAccessTokens(studentId: StudentId) : async [Document] {
+    transactionService.getDocumentsByStudentAccessTokens(studentId)
   };
 
   // Invitation Code Management Functions
@@ -444,4 +472,18 @@ actor Acadena {
   public query func getSystemStatus() : async SystemStatus {
     utilService.getSystemStatus();
   };
+
+  // Access Token Management Function
+  public shared func createAccessTokens(
+    docIds: [DocumentId],
+    studentId: StudentId
+  ) : async Result.Result<[Types.AccessToken], Error> {
+    // Call the transactionService's createAccessTokensForDocuments
+    transactionService.createAccessTokensForDocuments(docIds, studentId)
+  };
+  
+  // Query student info by userId
+  public query func getStudentByUserId(userId: UserId) : async ?Student {
+    studentService.getStudentByUserId(userId)
+  }
 };

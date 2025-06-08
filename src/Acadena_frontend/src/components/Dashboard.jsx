@@ -1,14 +1,23 @@
 import React, { useState } from 'react';
 import './assets/styles/dashboard.css';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchAllDocuUsingAccessToken } from '../redux/actions/documentAction';
+import { fetchStudentByUserId } from '../redux/actions/studentAction';
 
 const Dashboard = ({ 
   user, 
   systemStatus, 
   students, 
-  documents, 
   myInvitationCodes 
 }) => {
   const [copiedCode, setCopiedCode] = useState(null);
+
+  // Access student info from Redux store
+  const studentInfo = useSelector(state => state.student.student);
+  // Access documents from Redux store
+  const documents = useSelector(state => state.document.documents);
+  const dispatch = useDispatch();
+
 
   const getUserRoleDisplay = () => {
     if (user.role.SystemAdmin) return 'System Administrator';
@@ -16,6 +25,20 @@ const Dashboard = ({
     if (user.role.Student) return 'Student';
     return 'Unknown';
   };
+  
+  React.useEffect(() => {
+    if (user.role.Student ) {
+      console.log("KINGINAAAAAAAAA", user);
+      dispatch(fetchStudentByUserId(user.role.Student));
+      dispatch(fetchAllDocuUsingAccessToken({ studentid: user.role.Student }));
+    }
+  }, [user.role.Student, user.userId, dispatch]);
+
+  React.useEffect(() => {
+    if (user.role.Student && studentInfo && studentInfo.id) {
+      dispatch(fetchAllDocuUsingAccessToken({ studentid: user.role.Student }));
+    }
+  }, [user.role.Student, studentInfo, dispatch]);
 
   const getRoleIcon = () => {
     if (user.role.SystemAdmin) {
@@ -64,6 +87,25 @@ const Dashboard = ({
     return 'Good evening';
   };
 
+  // Download document file
+  const handleDownloadDocument = (document) => {
+    // document.file is an array with a single Uint8Array
+    let fileArr = document.file && document.file[0];
+    if (!fileArr) return;
+    // Convert to Blob
+    const blob = new Blob([fileArr], { type: (document.fileType && document.fileType[0]) || 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    const a = window.document.createElement('a');
+    a.href = url;
+    a.download = (document.fileName && document.fileName[0]) ? document.fileName[0] : (document.title ? document.title.replace(/\s+/g, '_') + '.pdf' : 'document.pdf');
+    window.document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      window.document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 100);
+  };
+
   console.log('Dashboard rendered with user:', students);
 
   return (
@@ -91,7 +133,10 @@ const Dashboard = ({
             <div className="welcome-content">
               <div className="greeting-text">{getGreeting()}</div>
               <h1 className="welcome-title">
-                <span className="user-name">{getUserRoleDisplay() === "Institution Administrator" && "Admin"}{getUserRoleDisplay() === "Student" && "Student"}</span>
+                <span className="user-name">
+                  {getUserRoleDisplay() === "Institution Administrator" && "Admin"}
+                  {getUserRoleDisplay() === "Student" && studentInfo && (studentInfo.firstName + ' ' + studentInfo.lastName)}
+                </span>
               </h1>
               <div className="user-details">
                 <div className="user-role">
@@ -232,7 +277,7 @@ const Dashboard = ({
                 <span className="section-count">{documents.length} documents</span>
               </div>
             </div>
-            {documents.length === 0 ? (
+            {(!documents || documents.length === 0) ? (
               <div className="empty-state">
                 <div className="empty-illustration">
                   <svg viewBox="0 0 120 120" fill="none">
@@ -247,6 +292,7 @@ const Dashboard = ({
               </div>
             ) : (
               <div className="cards-grid documents-grid">
+                {/* Show all documents fetched for the student, no filtering applied */}
                 {documents.map((document, index) => (
                   <div key={document.id} className={`info-card document-card card-${index % 4}`}>
                     <div className="card-header">
@@ -278,6 +324,12 @@ const Dashboard = ({
                           </>
                         )}
                       </div>
+                      {/* Download button */}
+                      <button className="download-btn" onClick={() => handleDownloadDocument(document)} title="Download Document" style={{marginLeft: 8, background: 'none', border: 'none', cursor: 'pointer'}}>
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
+                          <path d="M12 3v14m0 0l-4-4m4 4l4-4M5 21h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </button>
                     </div>
                     <div className="card-body">
                       <div className="info-grid">
@@ -292,6 +344,15 @@ const Dashboard = ({
                           </span>
                         </div>
                       </div>
+                      <div className="document-content-preview">
+                        <strong>Content:</strong>
+                        <div style={{whiteSpace: 'pre-wrap', background: '#f9fafb', padding: 8, borderRadius: 6, marginTop: 4}}>
+                          {document.content || 'No content available'}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="card-footer">
+                      {/* Removed duplicate download button at the bottom */}
                     </div>
                   </div>
                 ))}

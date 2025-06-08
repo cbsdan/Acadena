@@ -662,11 +662,12 @@
 }
 
 .info-card {
-  background: white;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
   border-radius: 16px;
   padding: 1.25rem;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
@@ -956,11 +957,11 @@
   }
 }
 
-/* Card Color Variants */
-.card-0::before { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-.card-1::before { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
-.card-2::before { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
-.card-3::before { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+/* --- THEME UPDATE FOR DOCUMENT TILES --- */
+/* Unify all card-X::before to use the main theme gradient */
+.card-0::before, .card-1::before, .card-2::before, .card-3::before {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
 
 /* Smooth transitions for all interactive elements */
 * {

@@ -196,5 +196,19 @@ module Students {
       // For now, return a default error since we can't identify the student
       #err(#Unauthorized)
     };
+    
+    // Fetch student info by userId
+    public func getStudentByUserId(userId: UserId) : ?Student {
+      let studentsArray = Iter.toArray(students.vals());
+      for (student in studentsArray.vals()) {
+        switch (student.userId) {
+          case (?uid) {
+            if (uid == userId) return ?student;
+          };
+          case null {};
+        }
+      };
+      null
+    }
   }
 }

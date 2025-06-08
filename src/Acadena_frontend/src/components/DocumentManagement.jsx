@@ -1,6 +1,9 @@
 import React from 'react';
 import './assets/styles/document.css';
 import { documentHandlers } from '../utils/documentHandlers';
+import { useDispatch, useSelector} from 'react-redux';
+import { fetchDocuments, createAccessTokens } from '../redux/actions/documentAction';
+import { useEffect } from 'react';
 
 const DocumentManagement = ({
   documentForm,
@@ -22,6 +25,17 @@ const DocumentManagement = ({
 
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [toast, setToast] = React.useState(null);
+  const [tilesLoading, setTilesLoading] = React.useState(false);
+  const [issuingTokens, setIssuingTokens] = React.useState(false); // Track issuing tokens state
+
+  // Ensure dispatch is only declared once
+  const dispatch = useDispatch();
+  const availableTiles = useSelector((state) => Array.isArray(state.document.documents?.ok) ? state.document.documents.ok : []);
+
+  // Set tilesLoading to false when availableTiles changes (fetch completes)
+  React.useEffect(() => {
+    setTilesLoading(false);
+  }, [availableTiles]);
 
   const MAX_DISPLAY_LIMIT = 10; // Maximum students to show at once
   const LOAD_MORE_INCREMENT = 3; // How many more to load when scrolling
@@ -48,6 +62,7 @@ const DocumentManagement = ({
   const hasMoreStudents = allFilteredStudents.length > filteredStudents.length;
 
   // Handle student selection
+ 
   const handleStudentSelect = (student) => {
     setSelectedStudent(student);
     setDocumentForm({ ...documentForm, studentId: student.id });
@@ -160,58 +175,26 @@ const DocumentManagement = ({
     }
   };
 
-  
-  // Sample tile data - replace with your actual content options
-  const availableTiles = [
-    {
-      id: 'academic-achievements',
-      title: 'Academic Achievements',
-      description: 'Honor roll, dean\'s list, academic awards and recognitions',
-      content: 'Outstanding academic performance with consistent honor roll recognition and dean\'s list achievements.'
-    },
-    {
-      id: 'grades-transcript',
-      title: 'Grades & Transcript',
-      description: 'Official grade reports, GPA, and academic transcripts',
-      content: 'Complete academic transcript with cumulative GPA and course-by-course breakdown.'
-    },
-    {
-      id: 'extracurricular',
-      title: 'Extracurricular Activities',
-      description: 'Sports, clubs, organizations, and leadership roles',
-      content: 'Active participation in student government, debate team, and community service organizations.'
-    },
-    {
-      id: 'certifications',
-      title: 'Certifications & Licenses',
-      description: 'Professional certifications, licenses, and specialized training',
-      content: 'Industry-recognized certifications and professional development credentials.'
-    },
-    {
-      id: 'research-projects',
-      title: 'Research Projects',
-      description: 'Academic research, publications, and scholarly work',
-      content: 'Independent research projects with published findings and academic presentations.'
-    },
-    {
-      id: 'internships',
-      title: 'Internships & Work Experience',
-      description: 'Professional experience, internships, and job roles',
-      content: 'Relevant work experience and internship programs with key accomplishments.'
-    },
-    {
-      id: 'recommendations',
-      title: 'Letters of Recommendation',
-      description: 'Faculty and employer recommendations and references',
-      content: 'Strong recommendations from professors and supervisors highlighting key strengths.'
-    },
-    {
-      id: 'community-service',
-      title: 'Community Service',
-      description: 'Volunteer work, community involvement, and social impact',
-      content: 'Dedicated community service with measurable impact on local organizations.'
+
+
+  // const dispatch = useDispatch();
+  const displayDocumentsAvailable = (type, studentId, studentFull) => {
+    setTilesLoading(true);
+    dispatch(fetchDocuments({ type, studentNumber: selectedStudent?.id || '' }));
+    // console.log("Documents in state:", availableTiles);
+  }
+
+  const handleCreateTokens = async (docIds) => {
+    setIssuingTokens(true);
+    try {
+      await dispatch(createAccessTokens({ documentId: docIds, studentNumber: selectedStudent?.id || '' }));
+      setToast({ type: 'success', message: 'Issued' });
+      setTimeout(() => setToast(null), 3000);
+    } finally {
+      setIssuingTokens(false);
     }
-  ];
+  }
+   
 
   const handleTileToggle = (tile) => {
     const isSelected = selectedContent.content.some(item => item.id === tile.id);
@@ -439,11 +422,12 @@ const DocumentManagement = ({
                             </div>
                             <div className="document-actions">
                               <button
+                                type="button"
                                 className="action-btn view-btn"
                                 onClick={() => handleViewDocument(document)}
                                 title="View document"
                               >
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" xmlns="http://www.w3.org/2000/svg">
                                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z" />
                                   <circle cx="12" cy="12" r="3" />
                                 </svg>
@@ -453,7 +437,7 @@ const DocumentManagement = ({
                                 onClick={() => handleDownloadDocument(document)}
                                 title="Download document"
                               >
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" xmlns="http://www.w3.org/2000/svg">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" xmlns="http://www.w3.org/2000/svg">
                                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                                   <polyline points="7 10 12 15 17 10" />
                                   <line x1="12" y1="15" x2="12" y2="3" />
@@ -519,7 +503,10 @@ const DocumentManagement = ({
                     <select
                       id="documentType"
                       value={documentForm.documentType}
-                      onChange={(e) => setDocumentForm({ ...documentForm, documentType: e.target.value })}
+                      onChange={(e) => {
+                        setDocumentForm({ ...documentForm, documentType: e.target.value });
+                        displayDocumentsAvailable(e.target.value, selectedStudent.studentNumber, selectedStudent.studentNumber);
+                      }}
                       required
                     >
                       <option value="Transcript">📄 Transcript</option>
@@ -553,33 +540,41 @@ const DocumentManagement = ({
       {/* Scrollable Tiles Container */}
       <div className="border border-[#BAD7E9] rounded-lg p-4" style={{backgroundColor: '#FCFFE7'}}>
         <div className="selected-content-tiles-vertical custom-scrollbar max-h-80 overflow-y-auto pr-2">
-          {availableTiles.map((tile) => {
-            const isSelected = selectedContent.content.some(item => item.id === tile.id);
-            return (
-              <div
-                key={tile.id}
-                onClick={() => handleTileToggle(tile)}
-                className={`selected-tile-vertical ${isSelected ? 'selected' : ''}`}
-                style={{
-                  borderColor: isSelected ? '#EB455F' : '#BAD7E9',
-                  backgroundColor: isSelected ? '#BAD7E9' : '#fff',
-                  cursor: 'pointer',
-                  boxShadow: isSelected ? '0 4px 16px rgba(235,69,95,0.13)' : '0 2px 8px rgba(43,52,103,0.07)'
-                }}
-                title={tile.title}
-              >
-                <div className="selected-tile-title-vertical">{tile.title}</div>
-                <button
-                  onClick={e => { e.stopPropagation(); handleTileToggle(tile); }}
-                  className="selected-tile-remove-vertical"
-                  title={isSelected ? 'Remove from selection' : 'Add to selection'}
-                  style={{background: isSelected ? '#EB455F' : '#2B3467', color: '#fff'}}
+          {tilesLoading ? (
+            <div style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 80 }}>
+              <div className="loading-spinner" style={{ width: 32, height: 32, border: '4px solid #BAD7E9', borderTop: '4px solid #EB455F', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+              <span style={{ marginLeft: 12, color: '#2B3467', fontWeight: 500 }}>Loading documents...</span>
+            </div>
+          ) : (
+            availableTiles.map((tile) => {
+              const isSelected = selectedContent.content.some(item => item.id === tile.id);
+              return (
+                <div
+                  key={tile.id}
+                  onClick={() => handleTileToggle({ id: tile.id, title: tile.title })}
+                  className={`selected-tile-vertical ${isSelected ? 'selected' : ''}`}
+                  style={{
+                    borderColor: isSelected ? '#EB455F' : '#BAD7E9',
+                    backgroundColor: isSelected ? '#BAD7E9' : '#fff',
+                    cursor: 'pointer',
+                    boxShadow: isSelected ? '0 4px 16px rgba(235,69,95,0.13)' : '0 2px 8px rgba(43,52,103,0.07)'
+                  }}
+                  title={tile.title}
                 >
-                  {isSelected ? 'Remove' : 'Add'}
-                </button>
-              </div>
-            );
-          })}
+                  <div className="selected-tile-title-vertical">{tile.title || tile.id}</div>
+                  <button
+                    type="button"
+                    onClick={e => { e.stopPropagation(); handleTileToggle({ id: tile.id, title: tile.title }); }}
+                    className="selected-tile-remove-vertical"
+                    title={isSelected ? 'Remove from selection' : 'Add to selection'}
+                    style={{background: isSelected ? '#EB455F' : '#2B3467', color: '#fff'}}
+                  >
+                    {isSelected ? 'Remove' : 'Add'}
+                  </button>
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
 
@@ -597,8 +592,13 @@ const DocumentManagement = ({
 
             <div className="form-actions">
 
-              <button type="submit" disabled={loading} className="submit-btn">
-                {loading ? (
+              <button 
+              type="button" disabled={loading || issuingTokens}
+              onClick={() => {
+                handleCreateTokens(selectedContent.content.map(item => item.id));
+              } }
+              className="submit-btn">
+                {issuingTokens ? (
                   <>
                     <div className="loading-spinner"></div>
                     Issuing Document...
@@ -748,9 +748,9 @@ const DocumentManagement = ({
                 onClick={() => handleDownloadDocument(selectedDocument)}
               >
                 <svg viewBox="0 0 24 24" fill="none">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" stroke="currentColor" strokeWidth="2" />
-                  <polyline points="7,10 12,15 17,10" stroke="currentColor" strokeWidth="2" />
-                  <line x1="12" y1="15" x2="12" y2="3" stroke="currentColor" strokeWidth="2" />
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7,10 12,15 17,10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
                 </svg>
                 Download Document
               </button>
@@ -763,6 +763,10 @@ const DocumentManagement = ({
       )}
 
       <style jsx>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
         .document-modal-overlay {
           position: fixed;
           top: 0;
