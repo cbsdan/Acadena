@@ -7,6 +7,7 @@ export const useData = (user, isAuthenticated) => {
   const [documents, setDocuments] = useState([]);
   const [systemStatus, setSystemStatus] = useState({});
   const [myInvitationCodes, setMyInvitationCodes] = useState([]);
+  const [incomingTransferRequests, setIncomingTransferRequests] = useState([]);
 
   const loadSystemStatus = async () => {
     try {
@@ -33,8 +34,12 @@ export const useData = (user, isAuthenticated) => {
       const result = await Acadena_backend.getStudentsByInstitution(user.role.InstitutionAdmin);
       if ('ok' in result) {
         setStudents(result.ok);
+      } else if ('err' in result) {
+        // Optionally, handle backend error here (e.g., show toast)
+        setStudents([]);
       }
     } catch (error) {
+      setStudents([]);
       console.error('Error loading students:', error);
     }
   };
@@ -52,18 +57,31 @@ export const useData = (user, isAuthenticated) => {
 
   const loadMyInvitationCodes = async () => {
     if (!user || !user.role.InstitutionAdmin) return;
-    
     try {
       const result = await Acadena_backend.getMyInvitationCodes();
       if ('ok' in result) {
-        setMyInvitationCodes(result.ok);
+        // Only show codes created by this institution
+        const filtered = result.ok.filter(code => code.institutionId === user.role.InstitutionAdmin);
+        setMyInvitationCodes(filtered);
       }
     } catch (error) {
       console.error('Error loading invitation codes:', error);
     }
   };
-  // TODO: NEED TO USE THE STUDENT ACCOUNT RATHER THAN THE USER ACCOUNT
-  // const loadMyStudentAccount
+
+  // Add a loader for transfer requests, only incoming
+  const loadIncomingTransferRequests = async () => {
+    if (!user || !user.role.InstitutionAdmin) return;
+    try {
+      const requests = await Acadena_backend.getTransferRequestsForInstitution();
+      // Only show incoming (to this institution, but not created by this institution)
+      const filtered = requests.filter(req => req.toInstitutionId === user.role.InstitutionAdmin && req.fromInstitutionId !== user.role.InstitutionAdmin);
+      setIncomingTransferRequests(filtered);
+    } catch (error) {
+      setIncomingTransferRequests([]);
+      console.error('Error loading transfer requests:', error);
+    }
+  };
 
   const loadData = async () => {
     try {
@@ -74,6 +92,7 @@ export const useData = (user, isAuthenticated) => {
         if (user.role.InstitutionAdmin) {
           await loadMyStudents();
           await loadMyInvitationCodes();
+          await loadIncomingTransferRequests();
         } else if (user.role.Student) {
           await loadMyDocuments();
         }
@@ -100,11 +119,14 @@ export const useData = (user, isAuthenticated) => {
     setSystemStatus,
     myInvitationCodes,
     setMyInvitationCodes,
+    incomingTransferRequests,
+    setIncomingTransferRequests,
     loadData,
     loadSystemStatus,
     loadInstitutions,
     loadMyStudents,
     loadMyDocuments,
-    loadMyInvitationCodes
+    loadMyInvitationCodes,
+    loadIncomingTransferRequests
   };
 };

@@ -1,5 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { fetchTransferRequests } from "../actions/transferAction";
+import { acceptTransferRequest } from '../actions/acceptTransferRequest';
 
 const initialState = {
   requests: [],
@@ -24,6 +25,13 @@ const transferSlice = createSlice({
       .addCase(fetchTransferRequests.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message;
+      })
+      .addCase(acceptTransferRequest.fulfilled, (state, action) => {
+        // Mark the accepted transfer as accepted in the state
+        const idx = state.requests.findIndex(r => r.id === action.payload.transferId);
+        if (idx !== -1) {
+          state.requests[idx].status = 'accepted';
+        }
       });
   },
 });

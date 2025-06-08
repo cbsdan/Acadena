@@ -5,13 +5,16 @@ import { useDispatch, useSelector } from 'react-redux';
 import { transferStudentToInstitution, fetchTransferRequests } from '../redux/actions/transferAction';
 import { fetchAllInstitutions } from '../redux/actions/institutionsAction';
 import { fetchAllStudents } from '../redux/actions/studentAction';
+import { useAuth } from '../hooks';
+import { acceptTransferRequest } from '../redux/actions/acceptTransferRequest';
 
 const Transfer = () => {
   const dispatch = useDispatch();
+  const { user } = useAuth();
   const [search, setSearch] = useState('');
   const [selectedInstitution, setSelectedInstitution] = useState(null);
   const [studentId, setStudentId] = useState('');
-  const [transferStatus, setTransferStatus] = useState(null);
+  const [toast, setToast] = useState(null);
 
   // Use the correct selector for institutions
   const institutions = useSelector(state => state.institutions.institutions) || [];
@@ -22,11 +25,15 @@ const Transfer = () => {
   const transferLoading = useSelector(state => state.transfer.loading);
   const transferError = useSelector(state => state.transfer.error);
 
-  // Filter institutions by search
+  // Filter institutions by search and exclude current institution
   const filteredInstitutions = institutions.filter(inst =>
-    inst.name.toLowerCase().includes(search.toLowerCase()) ||
-    inst.id.toLowerCase().includes(search.toLowerCase())
+    (inst.name.toLowerCase().includes(search.toLowerCase()) ||
+      inst.id.toLowerCase().includes(search.toLowerCase())) &&
+    (!user?.role?.InstitutionAdmin || inst.id !== user.role.InstitutionAdmin)
   );
+
+  // Check if the selected student is already being transferred
+  const isStudentBeingTransferred = studentId && transferRequests.some(req => req.studentId === studentId && req.status === 'pending');
 
   // Fetch all students for dropdown (reuse document fetch logic if needed)
   // For this example, we assume students are already in Redux as state.student.students
@@ -40,9 +47,28 @@ const Transfer = () => {
 
   const handleTransfer = () => {
     if (!selectedInstitution || !studentId) return;
-    dispatch(transferStudentToInstitution({ studentId, institutionId: selectedInstitution.id }))
-      .then(res => setTransferStatus('Transfer successful!'))
-      .catch(() => setTransferStatus('Transfer failed.'));
+    dispatch(transferStudentToInstitution({ studentId, toInstitutionId: selectedInstitution.id }))
+      .then(res => {
+        setToast({ type: 'success', message: 'Transfer request sent!' });
+        setTimeout(() => setToast(null), 3000);
+      })
+      .catch(() => {
+        setToast({ type: 'error', message: 'Transfer failed.' });
+        setTimeout(() => setToast(null), 3000);
+      });
+  };
+
+  const handleAccept = (transferId) => {
+    dispatch(acceptTransferRequest(transferId))
+      .then(res => {
+        if (!res.error) {
+          setToast({ type: 'success', message: 'Transfer accepted!' });
+          dispatch(fetchTransferRequests());
+        } else {
+          setToast({ type: 'error', message: res.error.message || 'Accept failed.' });
+        }
+        setTimeout(() => setToast(null), 3000);
+      });
   };
 
   return (
@@ -105,11 +131,29 @@ const Transfer = () => {
             className="action-btn"
             style={{ width: '100%', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', fontWeight: 700, fontSize: 16, padding: 14, borderRadius: 10, border: 'none', marginBottom: 16 }}
             onClick={handleTransfer}
-            disabled={!selectedInstitution || !studentId}
+            disabled={!selectedInstitution || !studentId || isStudentBeingTransferred}
+            title={isStudentBeingTransferred ? 'This student already has a pending transfer request.' : ''}
           >
             Transfer Student
           </button>
-          {transferStatus && <div style={{ marginTop: 16, color: transferStatus.includes('success') ? '#10b981' : '#ef4444' }}>{transferStatus}</div>}
+          {/* Toast Notification */}
+          {toast && (
+            <div className={`toast-notification ${toast.type}`} style={{ position: 'fixed', top: 20, right: 20, zIndex: 9999 }}>
+              <div className="toast-content">
+                <svg className="toast-icon" viewBox="0 0 24 24" fill="none">
+                  {toast.type === 'success' ? (
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="currentColor" strokeWidth="2" />
+                  ) : (
+                    <g>
+                      <line x1="15" y1="9" x2="9" y2="15" stroke="currentColor" strokeWidth="2" />
+                      <line x1="9" y1="9" x2="15" y2="15" stroke="currentColor" strokeWidth="2" />
+                    </g>
+                  )}
+                </svg>
+                <span>{toast.message}</span>
+              </div>
+            </div>
+          )}
         </div>
         {/* Transfer Requests Panel */}
         <div className="content-section" style={{ maxWidth: 700, margin: '2rem auto', marginTop: 32, background: '#f8fafc', borderRadius: 12, boxShadow: '0 2px 8px #e0e7ef', padding: 24 }}>
@@ -126,6 +170,7 @@ const Transfer = () => {
                   <th style={{ padding: 8, textAlign: 'left' }}>To</th>
                   <th style={{ padding: 8, textAlign: 'left' }}>Status</th>
                   <th style={{ padding: 8, textAlign: 'left' }}>Date</th>
+                  <th style={{ padding: 8, textAlign: 'left' }}>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -136,6 +181,17 @@ const Transfer = () => {
                     <td style={{ padding: 8 }}>{req.toInstitutionName || req.toInstitutionId}</td>
                     <td style={{ padding: 8 }}>{req.status || 'Pending'}</td>
                     <td style={{ padding: 8 }}>{req.date ? new Date(req.date).toLocaleString() : ''}</td>
+                    <td style={{ padding: 8 }}>
+                      {req.status === 'pending' && (
+                        <button
+                          className="action-btn"
+                          style={{ background: '#22c55e', color: 'white', border: 'none', borderRadius: 6, padding: '6px 14px', fontWeight: 600, cursor: 'pointer' }}
+                          onClick={() => handleAccept(req.id)}
+                        >
+                          Accept
+                        </button>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>

@@ -209,6 +209,11 @@ module Students {
         }
       };
       null
+    };
+    
+    // Returns all students as an array
+    public func getAllStudents() : [Student] {
+      Iter.toArray(students.vals())
     }
   }
 }

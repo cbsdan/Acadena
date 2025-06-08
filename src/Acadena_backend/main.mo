@@ -511,4 +511,44 @@ actor Acadena {
   public query func getTransferRequests() : async [Types.TransferInstitute] {
     transferService.getAllTransferRequests()
   };
+
+  public query ({ caller }) func getAllStudents() : async [Student] {
+    // Only return students for the currently logged-in institution admin
+    let userOpt = principalToUser.get(caller);
+    switch (userOpt) {
+      case (?userId) {
+        let user = users.get(userId);
+        switch (user) {
+          case (?u) {
+            switch (u.role) {
+              case (#InstitutionAdmin(institutionId)) {
+                let result = studentService.getStudentsByInstitution(institutionId);
+                switch (result) {
+                  case (#ok(students)) students;
+                  case (#err(_)) [];
+                }
+              };
+              case _ [];
+            }
+          };
+          case null [];
+        }
+      };
+      case null [];
+    }
+  };
+
+  public query ({ caller }) func getTransferRequestsForInstitution() : async [Types.TransferInstitute] {
+    transferService.getTransferRequestsForInstitution(caller, principalToUser, users)
+  };
+
+  // Create a transfer request (called by sending institution admin)
+  public shared ({ caller }) func transferStudentToInstitution(studentId : StudentId, toInstitutionId : InstitutionId) : async Result.Result<Types.TransferInstitute, Text> {
+    transferService.transferStudentToInstitution(caller, studentId, toInstitutionId, principalToUser, users)
+  };
+
+  // Accept a transfer request (called by receiving institution admin)
+  public shared ({ caller }) func acceptTransferRequest(transferId : Types.TransferId) : async Result.Result<Text, Text> {
+    transferService.acceptTransferRequest(caller, transferId, principalToUser, users, students, documents, transferRequests)
+  }
 };

@@ -38,8 +38,8 @@ export const fetchTransferRequests = createAsyncThunk(
       const backendActor = createActor(process.env.CANISTER_ID_ACADENA_BACKEND, {
         agentOptions: { identity },
       });
-      // This assumes a backend method getTransferRequests exists
-      const result = await backendActor.getTransferRequests();
+      // Use the new backend method for institution-specific requests
+      const result = await backendActor.getTransferRequestsForInstitution();
       return result;
     } catch (error) {
       return thunkAPI.rejectWithValue(error.message || 'Unknown error');
