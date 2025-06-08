@@ -1,4 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { fetchAllInstitutions } from "../actions/institutionsAction";
 
 const initialState = {
   institutions: [],
@@ -20,6 +21,21 @@ const institutionsSlice = createSlice({
       state.loading = false;
       state.error = null;
     },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchAllInstitutions.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchAllInstitutions.fulfilled, (state, action) => {
+        state.institutions = action.payload;
+        state.loading = false;
+      })
+      .addCase(fetchAllInstitutions.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || action.error.message;
+      });
   },
 });
 

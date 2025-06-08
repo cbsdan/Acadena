@@ -25,3 +25,21 @@ export const fetchStudentByUserId = createAsyncThunk(
     }
   }
 );
+
+// Fetch all students
+export const fetchAllStudents = createAsyncThunk(
+  "student/fetchAllStudents",
+  async (_, thunkAPI) => {
+    try {
+      const authClient = await AuthClient.create();
+      const identity = authClient.getIdentity();
+      const backendActor = createActor(process.env.CANISTER_ID_ACADENA_BACKEND, {
+        agentOptions: { identity }
+      });
+      const students = await backendActor.getAllStudents();
+      return students;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.message || "Unknown error");
+    }
+  }
+);

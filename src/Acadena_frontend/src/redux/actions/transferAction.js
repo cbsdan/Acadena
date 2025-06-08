@@ -27,3 +27,22 @@ export const transferStudentToInstitution = createAsyncThunk(
     }
   }
 );
+
+// Async thunk for fetching transfer requests
+export const fetchTransferRequests = createAsyncThunk(
+  'transfer/fetchTransferRequests',
+  async (_, thunkAPI) => {
+    try {
+      const authClient = await AuthClient.create();
+      const identity = authClient.getIdentity();
+      const backendActor = createActor(process.env.CANISTER_ID_ACADENA_BACKEND, {
+        agentOptions: { identity },
+      });
+      // This assumes a backend method getTransferRequests exists
+      const result = await backendActor.getTransferRequests();
+      return result;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error.message || 'Unknown error');
+    }
+  }
+);

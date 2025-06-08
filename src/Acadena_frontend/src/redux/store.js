@@ -1,6 +1,7 @@
 import documentReducer from './reducers/documentReducer';
 import studentReducer from './reducers/studentReducer';
 import institutionsReducer from './reducers/institutionsReducer';
+import transferReducer from './reducers/transferReducer';
 
 import {configureStore} from '@reduxjs/toolkit';
 const store = configureStore({
@@ -8,6 +9,7 @@ const store = configureStore({
     document: documentReducer,
     student: studentReducer,
     institutions: institutionsReducer,
+    transfer: transferReducer,
   },
 });
 

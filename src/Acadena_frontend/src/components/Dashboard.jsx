@@ -135,7 +135,7 @@ const Dashboard = ({
               <h1 className="welcome-title">
                 <span className="user-name">
                   {getUserRoleDisplay() === "Institution Administrator" && "Admin"}
-                  {getUserRoleDisplay() === "Student" && studentInfo && (studentInfo.firstName + ' ' + studentInfo.lastName)}
+                  {getUserRoleDisplay() === "Student" && ""}
                 </span>
               </h1>
               <div className="user-details">

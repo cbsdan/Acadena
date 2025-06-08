@@ -17,7 +17,7 @@ import InstitutionsData "./modules/InstitutionsData";
 // import TransacCreator "modules/TransacCreator";
 
 import TransacCreator "modules/TransacCreator";
-
+import TransferModule "./modules/Transfer";
 
 actor Acadena {
 
@@ -51,6 +51,7 @@ actor Acadena {
   private stable var nextTransactionId : Nat = 1;
   private stable var nextUserId : Nat = 1;
   private stable var _nextRequestId : Nat = 1;
+  private stable var nextTransferId : Nat = 1;
 
   // Storage - Data maps
   private var institutions = Map.HashMap<InstitutionId, Institution>(10, Text.equal, Text.hash);
@@ -61,6 +62,7 @@ actor Acadena {
   private var principalToUser = Map.HashMap<Principal, UserId>(1000, Principal.equal, Principal.hash);
   private var invitationCodes = Map.HashMap<Text, InvitationCode>(1000, Text.equal, Text.hash);
   private var accessTokens = Map.HashMap<Types.AccessTokenId, Types.AccessToken>(1000, Text.equal, Text.hash);
+  private var transferRequests = Map.HashMap<Types.TransferId, Types.TransferInstitute>(100, Text.equal, Text.hash);
 
   // ===== CHED CSV Institutions Storage =====
   stable var chedInstitutions : [CHEDInstitution] = [];
@@ -90,6 +92,9 @@ actor Acadena {
   private func getNextUserId() : Nat { nextUserId };
   private func incrementUserId() : () { nextUserId += 1 };
 
+  private func getNextTransferId() : Nat { nextTransferId };
+  private func incrementTransferId() : () { nextTransferId += 1 };
+
   // Initialize service instances
      private let transactionService = TransacCreator.TransactionService(
         transactions,
@@ -105,6 +110,12 @@ actor Acadena {
     principalToUser,
     getNextUserId,
     incrementUserId,
+  );
+
+  private let transferService = TransferModule.TransferService(
+    transferRequests,
+    getNextTransferId,
+    incrementTransferId
   );
 
   // Wrapper function for institution service - matches expected signature
@@ -485,5 +496,19 @@ actor Acadena {
   // Query student info by userId
   public query func getStudentByUserId(userId: UserId) : async ?Student {
     studentService.getStudentByUserId(userId)
-  }
+  };
+
+  // Transfer Management Functions
+  public shared func createTransferRequest(
+    studentId : StudentId,
+    fromInstitutionId : InstitutionId,
+    toInstitutionId : InstitutionId,
+    notes : ?Text
+  ) : async Types.TransferInstitute {
+    transferService.createTransferRequest(studentId, fromInstitutionId, toInstitutionId, notes)
+  };
+
+  public query func getTransferRequests() : async [Types.TransferInstitute] {
+    transferService.getAllTransferRequests()
+  };
 };

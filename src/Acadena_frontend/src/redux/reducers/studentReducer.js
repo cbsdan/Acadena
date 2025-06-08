@@ -1,8 +1,9 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { fetchStudentByUserId } from "../actions/studentAction";
+import { fetchStudentByUserId, fetchAllStudents } from "../actions/studentAction";
 
 const initialState = {
   student: null,
+  students: [], // Add students array for all students
   loading: false,
   error: null,
 };
@@ -13,6 +14,11 @@ const studentSlice = createSlice({
   reducers: {
     clearStudent: (state) => {
       state.student = null;
+      state.loading = false;
+      state.error = null;
+    },
+    clearStudents: (state) => {
+      state.students = [];
       state.loading = false;
       state.error = null;
     },
@@ -30,9 +36,22 @@ const studentSlice = createSlice({
       .addCase(fetchStudentByUserId.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || action.error.message;
+      })
+      // Add support for fetchAllStudents
+      .addCase(fetchAllStudents.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchAllStudents.fulfilled, (state, action) => {
+        state.students = action.payload;
+        state.loading = false;
+      })
+      .addCase(fetchAllStudents.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || action.error.message;
       });
   },
 });
 
-export const { clearStudent } = studentSlice.actions;
+export const { clearStudent, clearStudents } = studentSlice.actions;
 export default studentSlice.reducer;
