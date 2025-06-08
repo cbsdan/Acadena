@@ -28,6 +28,7 @@ import {
   DocumentPerInstitution,
   LandingPage,
   Institutions,
+  Transfer
 } from './components';
 
 import { internetIdentityRegistrationService } from './services/InternetIdentityRegistrationService';
@@ -659,6 +660,9 @@ const navigateToApp = () => {
                 setLoading={setInstitutionDocumentsLoading}
                 loadDocumentsByInstitution={loadDocumentsByInstitution}
               />
+            )}
+            {currentView === 'Transferring-of-Students' && user?.role.InstitutionAdmin && (
+              <Transfer />
             )}
           </main>
         </div>

@@ -11,3 +11,4 @@ export { default as DocumentUpload } from './DocumentUpload';
 export { default as DocumentPerInstitution } from './DocumentPerInstitution';
 export { default as LandingPage } from './LandingPage';
 export { default as Institutions } from './Institutions';
+export { default as Transfer } from './Transfer.jsx';
