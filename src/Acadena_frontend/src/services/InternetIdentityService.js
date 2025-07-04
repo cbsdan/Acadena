@@ -35,18 +35,18 @@ class InternetIdentityService {
 
     const agent = new HttpAgent({
       identity: this.identity,
-      ...(this.isLocalNetwork && { host: 'http://localhost:4943' })
+      ...(this.isLocalNetwork && { host: 'https://icp0.io' })
     });
 
-    if (this.isLocalNetwork) {
-      try {
-        await agent.fetchRootKey();
-        console.log('✅ Root key fetched successfully for local development');
-      } catch (err) {
-        console.warn('Unable to fetch root key. Check to ensure that your local replica is running');
-        console.error(err);
-      }
-    }
+    // if (this.isLocalNetwork) {
+    //   try {
+    //     await agent.fetchRootKey();
+    //     console.log('✅ Root key fetched successfully for local development');
+    //   } catch (err) {
+    //     console.warn('Unable to fetch root key. Check to ensure that your local replica is running');
+    //     console.error(err);
+    //   }
+    // }
 
     // Verify the principal being used
     const principal = this.identity.getPrincipal().toText();

@@ -5,10 +5,10 @@ import { idlFactory, canisterId } from '../../../declarations/Acadena_backend';
 import './assets/styles/main.css';
 import logoImage from './assets/images/logo.png';
 
-const agent = new HttpAgent({ host: "http://localhost:4943" });
-if (process.env.DFX_NETWORK !== "ic") {
-  agent.fetchRootKey();
-}
+const agent = new HttpAgent({ host: "https://icp0.io" });
+// if (process.env.DFX_NETWORK !== "ic") {
+//   agent.fetchRootKey();
+// }
 const backend = Actor.createActor(idlFactory, { agent, canisterId });
 
 export default function Institutions({ onBackToLanding }) {

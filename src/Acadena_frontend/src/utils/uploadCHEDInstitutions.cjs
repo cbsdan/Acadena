@@ -8,12 +8,12 @@ let idlFactory, canisterId;
   idlFactory = mod.idlFactory;
   canisterId = mod.canisterId;
 
-  const agent = new HttpAgent({ host: 'http://localhost:4943' });
+  const agent = new HttpAgent({ host: 'https://icp0.io' });
 
   // Add this line to trust the local replica's root key
-  if (process.env.DFX_NETWORK !== "ic") {
-    await agent.fetchRootKey();
-  }
+  // if (process.env.DFX_NETWORK !== "ic") {
+  //   await agent.fetchRootKey();
+  // }
 
   const backend = Actor.createActor(idlFactory, { agent, canisterId });
 
