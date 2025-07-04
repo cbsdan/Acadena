@@ -12,3 +12,7 @@ export { default as DocumentPerInstitution } from './DocumentPerInstitution';
 export { default as LandingPage } from './LandingPage';
 export { default as Institutions } from './Institutions';
 export { default as Transfer } from './Transfer.jsx';
+export { default as Chat } from './Chat';
+export { default as ConversationList } from './ConversationList';
+export { default as ChatWindow } from './ChatWindow';
+export { default as NewConversation } from './NewConversation';

@@ -28,7 +28,8 @@ import {
   DocumentPerInstitution,
   LandingPage,
   Institutions,
-  Transfer
+  Transfer,
+  Chat
 } from './components';
 
 import { internetIdentityRegistrationService } from './services/InternetIdentityRegistrationService';
@@ -279,7 +280,10 @@ const navigateToApp = () => {
 
   // Navigation items
   const getNavItems = () => {
-    const items = [{ key: 'dashboard', label: 'Dashboard' }];
+    const items = [
+      { key: 'dashboard', label: 'Dashboard' },
+      { key: 'chat', label: 'Messages' }
+    ];
     
     if (user?.role.InstitutionAdmin) {
       items.push(
@@ -663,6 +667,9 @@ const navigateToApp = () => {
             )}
             {currentView === 'Transferring-of-Students' && user?.role.InstitutionAdmin && (
               <Transfer />
+            )}
+            {currentView === 'chat' && isAuthenticated && (
+              <Chat />
             )}
           </main>
         </div>

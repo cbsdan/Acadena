@@ -157,7 +157,14 @@ class InternetIdentityService {
 
       if (result.length > 0) {
         console.log('InternetIdentityService: User found:', result[0]);
-        return result[0];
+        // Convert BigInt fields to regular numbers
+        const user = result[0];
+        const convertedUser = {
+          ...user,
+          createdDate: typeof user.createdDate === 'bigint' ? Number(user.createdDate) : user.createdDate,
+          lastLoginDate: user.lastLoginDate && typeof user.lastLoginDate === 'bigint' ? Number(user.lastLoginDate) : user.lastLoginDate
+        };
+        return convertedUser;
       } else {
         console.log('InternetIdentityService: No user data found (new user)');
         return null;

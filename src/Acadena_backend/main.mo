@@ -5,6 +5,7 @@ import Principal "mo:base/Principal";
 import Nat "mo:base/Nat";
 import Array "mo:base/Array";
 import Debug "mo:base/Debug";
+import Iter "mo:base/Iter";
 // Import our modules
 import Types "./modules/Types";
 import Users "./modules/Users";
@@ -14,6 +15,8 @@ import Documents "./modules/Documents";
 import Invitations "./modules/Invitations";
 import Utils "./modules/Utils";
 import InstitutionsData "./modules/InstitutionsData";
+import Chat "./modules/Chat";
+
 // import TransacCreator "modules/TransacCreator";
 
 import TransacCreator "modules/TransacCreator";
@@ -44,6 +47,13 @@ actor Acadena {
   // Expose the Institution type from InstitutionsData for CHED institutions
   public type CHEDInstitution = InstitutionsData.Institution;
 
+  // Chat types
+  public type MessageId = Types.MessageId;
+  public type ConversationId = Types.ConversationId;
+  public type MessageType = Types.MessageType;
+  public type Message = Types.Message;
+  public type Conversation = Types.Conversation;
+
   // Storage - ID counters
   private stable var nextInstitutionId : Nat = 1;
   private stable var nextStudentId : Nat = 1;
@@ -52,6 +62,10 @@ actor Acadena {
   private stable var nextUserId : Nat = 1;
   private stable var _nextRequestId : Nat = 1;
   private stable var nextTransferId : Nat = 1;
+
+  // Initialize chat manager
+  private let chatManager = Chat.ChatManager();
+  private stable var nextMessageId : Nat = 1;
 
   // Storage - Data maps
   private var institutions = Map.HashMap<InstitutionId, Institution>(10, Text.equal, Text.hash);
@@ -550,5 +564,238 @@ actor Acadena {
   // Accept a transfer request (called by receiving institution admin)
   public shared ({ caller }) func acceptTransferRequest(transferId : Types.TransferId) : async Result.Result<Text, Text> {
     transferService.acceptTransferRequest(caller, transferId, principalToUser, users, students, documents, transferRequests)
-  }
+  };
+
+  // Public functions for chat
+  public shared ({ caller }) func sendMessage(content: Text, receiverId: UserId) : async Result.Result<Message, Error> {
+    // Get user info from caller
+    let userOpt = principalToUser.get(caller);
+    switch (userOpt) {
+      case (?userId) {
+        let userOpt2 = users.get(userId);
+        switch (userOpt2) {
+          case (?_user) {
+            // Determine conversation based on sender/receiver roles
+            let messageId = "msg_" # Nat.toText(nextMessageId);
+            nextMessageId += 1;
+            
+            // Create a simple conversation ID based on participants
+            let conversationId = if (userId < receiverId) {
+              userId # "_" # receiverId
+            } else {
+              receiverId # "_" # userId
+            };
+            
+            chatManager.sendMessage(messageId, conversationId, userId, receiverId, content, #Text)
+          };
+          case null { #err(#NotFound) };
+        };
+      };
+      case null { #err(#Unauthorized) };
+    };
+  };
+
+  public shared ({ caller }) func getMyConversations() : async Result.Result<[Conversation], Error> {
+    let userOpt = principalToUser.get(caller);
+    switch (userOpt) {
+      case (?userId) {
+        let conversations = chatManager.getUserConversations(userId);
+        #ok(conversations)
+      };
+      case null { #err(#Unauthorized) };
+    };
+  };
+
+  public shared ({ caller }) func getConversationMessages(conversationId: ConversationId) : async Result.Result<[Message], Error> {
+    let userOpt = principalToUser.get(caller);
+    switch (userOpt) {
+      case (?_userId) {
+        let messages = chatManager.getConversationMessages(conversationId);
+        #ok(messages)
+      };
+      case null { #err(#Unauthorized) };
+    };
+  };
+
+  // Helper function to get user info for conversations
+  public shared ({ caller = _ }) func getUserForConversation(userId: UserId) : async ?{
+    id: UserId;
+    name: Text;
+    role: UserRole;
+  } {
+    // First try to get from users
+    switch (users.get(userId)) {
+      case (?user) {
+        // Get display name based on role
+        let displayName = switch (user.role) {
+          case (#Student(studentId)) {
+            switch (students.get(studentId)) {
+              case (?student) { student.firstName # " " # student.lastName };
+              case null { "Student" };
+            };
+          };
+          case (#InstitutionAdmin(instId)) {
+            switch (institutions.get(instId)) {
+              case (?institution) { institution.name # " Admin" };
+              case null { "Admin" };
+            };
+          };
+          case (#SystemAdmin) { "System Admin" };
+        };
+        
+        ?{
+          id = user.id;
+          name = displayName;
+          role = user.role;
+        }
+      };
+      case null { null };
+    };
+  };
+
+  // Get available chat recipients
+  public shared ({ caller }) func getAvailableChatRecipients() : async Result.Result<[{
+    id: UserId;
+    name: Text;
+    role: Text;
+  }], Error> {
+    let userOpt = principalToUser.get(caller);
+    switch (userOpt) {
+      case (?userId) {
+        let userOpt2 = users.get(userId);
+        switch (userOpt2) {
+          case (?currentUser) {
+            var recipients: [{id: UserId; name: Text; role: Text}] = [];
+            
+            Debug.print("Getting chat recipients for user: " # userId);
+            Debug.print("User role: " # debug_show(currentUser.role));
+            
+            switch (currentUser.role) {
+              case (#Student(_studentId)) {
+                // Students can chat with institution admins
+                Debug.print("User is a student, finding institution admins...");
+                let allUsers = Iter.toArray(users.vals());
+                Debug.print("Total users in system: " # Nat.toText(allUsers.size()));
+                
+                for (user in allUsers.vals()) {
+                  switch (user.role) {
+                    case (#InstitutionAdmin(instId)) {
+                      switch (institutions.get(instId)) {
+                        case (?institution) {
+                          Debug.print("Found institution admin: " # user.id # " for institution: " # institution.name);
+                          recipients := Array.append(recipients, [{
+                            id = user.id;
+                            name = institution.name # " Admin";
+                            role = "admin";
+                          }]);
+                        };
+                        case null {
+                          Debug.print("Institution not found for admin: " # user.id);
+                        };
+                      };
+                    };
+                    case _ {};
+                  };
+                };
+              };
+              case (#InstitutionAdmin(institutionId)) {
+                // Institution admins can chat with their students
+                Debug.print("User is an institution admin for: " # institutionId);
+                let institutionStudents = switch (studentService.getStudentsByInstitution(institutionId)) {
+                  case (#ok(students)) { 
+                    Debug.print("Found " # Nat.toText(students.size()) # " students in institution");
+                    students 
+                  };
+                  case (#err(error)) { 
+                    Debug.print("Error getting students: " # debug_show(error));
+                    [] 
+                  };
+                };
+                
+                for (student in institutionStudents.vals()) {
+                  Debug.print("Processing student: " # student.firstName # " " # student.lastName);
+                  Debug.print("Student userId: " # debug_show(student.userId));
+                  // Only add students that have a userId
+                  switch (student.userId) {
+                    case (?studentUserId) {
+                      Debug.print("Adding student to recipients: " # studentUserId);
+                      recipients := Array.append(recipients, [{
+                        id = studentUserId;
+                        name = student.firstName # " " # student.lastName # " (" # student.studentNumber # ")";
+                        role = "student";
+                      }]);
+                    };
+                    case null {
+                      Debug.print("Student has no userId, skipping: " # student.firstName # " " # student.lastName);
+                    };
+                  };
+                };
+              };
+              case _ {
+                Debug.print("User role not supported for chat");
+              };
+            };
+            
+            Debug.print("Total recipients found: " # Nat.toText(recipients.size()));
+            #ok(recipients)
+          };
+          case null { 
+            Debug.print("User not found: " # userId);
+            #err(#NotFound) 
+          };
+        };
+      };
+      case null { 
+        Debug.print("Principal not mapped to user");
+        #err(#Unauthorized) 
+      };
+    };
+  };
+
+  // Debug function to check students and their userIds
+  public query func debugStudentsWithUserIds() : async [{
+    studentId: StudentId;
+    firstName: Text;
+    lastName: Text;
+    hasUserId: Bool;
+    userId: ?UserId;
+  }] {
+    let allStudents = Iter.toArray(students.vals());
+    Array.map<Student, {studentId: StudentId; firstName: Text; lastName: Text; hasUserId: Bool; userId: ?UserId}>(
+      allStudents,
+      func(student) {
+        {
+          studentId = student.id;
+          firstName = student.firstName;
+          lastName = student.lastName;
+          hasUserId = switch (student.userId) { case (?_) true; case null false };
+          userId = student.userId;
+        }
+      }
+    )
+  };
+
+  // Debug function to check all users and their roles
+  public query func debugAllUsers() : async [{
+    userId: UserId;
+    email: Text;
+    role: Text;
+  }] {
+    let allUsers = Iter.toArray(users.vals());
+    Array.map<User, {userId: UserId; email: Text; role: Text}>(
+      allUsers,
+      func(user) {
+        let roleText = switch (user.role) {
+          case (#Student(id)) "Student(" # id # ")";
+          case (#InstitutionAdmin(id)) "InstitutionAdmin(" # id # ")";
+          case (#SystemAdmin) "SystemAdmin";
+        };
+        {
+          userId = user.id;
+          email = user.email;
+          role = roleText;
+        }
+      }
+    )
+  };
 };

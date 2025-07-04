@@ -32,7 +32,7 @@ const Dashboard = ({
       dispatch(fetchStudentByUserId(user.role.Student));
       dispatch(fetchAllDocuUsingAccessToken({ studentid: user.role.Student }));
     }
-  }, [user.role.Student, user.userId, dispatch]);
+  }, [user.role.Student, user.id, dispatch]);
 
   React.useEffect(() => {
     if (user.role.Student && studentInfo && studentInfo.id) {

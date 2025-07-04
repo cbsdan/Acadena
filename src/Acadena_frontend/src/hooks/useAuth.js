@@ -6,6 +6,23 @@ export const useAuth = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  // Helper function to convert BigInt fields to numbers
+  const convertBigIntFields = (obj) => {
+    if (!obj) return obj;
+    
+    const converted = { ...obj };
+    
+    // Convert known BigInt fields to numbers
+    if (typeof converted.createdDate === 'bigint') {
+      converted.createdDate = Number(converted.createdDate);
+    }
+    if (converted.lastLoginDate && typeof converted.lastLoginDate === 'bigint') {
+      converted.lastLoginDate = Number(converted.lastLoginDate);
+    }
+    
+    return converted;
+  };
+
   const checkAuthentication = async () => {
     try {
       await internetIdentityService.init();
@@ -16,9 +33,10 @@ export const useAuth = () => {
         if (actor) {
           const currentUser = await actor.getCurrentUserInfo();
           if (currentUser && currentUser.length > 0) {
-            setUser(currentUser[0]);
+            const convertedUser = convertBigIntFields(currentUser[0]);
+            setUser(convertedUser);
             setIsAuthenticated(true);
-            return currentUser[0];
+            return convertedUser;
           }
         }
       }
@@ -39,9 +57,10 @@ export const useAuth = () => {
       const sessionInfo = await internetIdentityService.login();
 
       if (sessionInfo && sessionInfo.userInfo) {
-        setUser(sessionInfo.userInfo);
+        const convertedUser = convertBigIntFields(sessionInfo.userInfo);
+        setUser(convertedUser);
         setIsAuthenticated(true);
-        return sessionInfo.userInfo;
+        return convertedUser;
       } else {
         // User logged in but no user info found in backend
         console.log('User authenticated but no profile found in backend');

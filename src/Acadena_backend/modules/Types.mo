@@ -11,6 +11,8 @@ module Types {
   public type TransferId = Text;
   public type TransactionId = Text;
   public type AccessTokenId = Text;
+  public type MessageId = Text;
+  public type ConversationId = Text;
 
   // User role types
   public type UserRole = {
@@ -186,4 +188,41 @@ module Types {
     isActive : Bool;
   };
 
+  public type MessageType = {
+    #Text;
+    #Document; // For sharing documents
+    #System;   // For automated messages
+  };
+
+  public type Message = {
+    id: MessageId;
+    conversationId: ConversationId;
+    senderId: UserId;
+    receiverId: UserId;
+    content: Text;
+    messageType: MessageType;
+    timestamp: Int;
+    isRead: Bool;
+    // Optional file attachment
+    attachment: ?{
+      fileName: Text;
+      fileType: Text;
+      fileData: [Nat8];
+    };
+  };
+
+  public type Conversation = {
+    id: ConversationId;
+    studentId: StudentId;
+    institutionId: InstitutionId;
+    institutionAdminId: UserId;
+    lastMessageTimestamp: Int;
+    lastMessage: ?Text;
+    unreadCount: {
+      student: Nat;
+      admin: Nat;
+    };
+    isActive: Bool;
+    createdDate: Int;
+  };
 };
