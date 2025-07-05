@@ -4,6 +4,9 @@ import { useAuth } from '../hooks';
 const ConversationList = ({ conversations, loading, onConversationSelect, activeConversation }) => {
   const { user } = useAuth();
 
+  // Only show loading for initial load when there are no conversations yet
+  const shouldShowLoading = loading && conversations.length === 0;
+
   const getOtherPartyName = (conversation) => {
     // Determine who is the "other party" based on current user role
     if (user?.role?.Student) {
@@ -43,7 +46,7 @@ const ConversationList = ({ conversations, loading, onConversationSelect, active
     return 0;
   };
 
-  if (loading) {
+  if (shouldShowLoading) {
     return (
       <div className="conversation-loading">
         <div className="loading-spinner"></div>

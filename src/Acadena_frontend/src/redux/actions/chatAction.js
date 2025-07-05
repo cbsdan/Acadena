@@ -24,6 +24,24 @@ export const fetchConversations = createAsyncThunk(
   }
 );
 
+// Background fetch for real-time updates (doesn't trigger loading state)
+export const fetchConversationsBackground = createAsyncThunk(
+  'chat/fetchConversationsBackground',
+  async (_, { rejectWithValue }) => {
+    try {
+      const backendActor = await getBackendActor();
+      const result = await backendActor.getMyConversations();
+      if (result.ok) {
+        return result.ok;
+      } else {
+        return rejectWithValue(result.err);
+      }
+    } catch (error) {
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
 export const fetchMessages = createAsyncThunk(
   'chat/fetchMessages',
   async (conversationId, { rejectWithValue }) => {

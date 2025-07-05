@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchMessages, sendMessage } from '../redux/actions/chatAction';
 import { markAsRead } from '../redux/reducers/chatReducer';
-import { useAuth } from '../hooks';
+import { useAuth, useRealTimeChat } from '../hooks';
+import './assets/styles/realtime-chat.css';
 
 const ChatWindow = ({ conversationId }) => {
   const dispatch = useDispatch();
@@ -10,7 +11,11 @@ const ChatWindow = ({ conversationId }) => {
   const { messages, loading } = useSelector(state => state.chat);
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
+  const [isWindowActive, setIsWindowActive] = useState(true);
   const messagesEndRef = useRef(null);
+
+  // Enable real-time chat polling
+  const { isPolling, refreshMessages } = useRealTimeChat(conversationId, isWindowActive);
 
   const conversationMessages = messages[conversationId] || [];
 
@@ -20,6 +25,32 @@ const ChatWindow = ({ conversationId }) => {
       dispatch(markAsRead({ conversationId }));
     }
   }, [conversationId, dispatch]);
+
+  // Handle window focus/blur for optimized polling
+  useEffect(() => {
+    const handleFocus = () => {
+      setIsWindowActive(true);
+      // Immediately refresh messages when window becomes active
+      if (conversationId) {
+        refreshMessages();
+      }
+    };
+    
+    const handleBlur = () => {
+      setIsWindowActive(false);
+    };
+
+    window.addEventListener('focus', handleFocus);
+    window.addEventListener('blur', handleBlur);
+    
+    // Check if window is currently focused
+    setIsWindowActive(document.hasFocus());
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      window.removeEventListener('blur', handleBlur);
+    };
+  }, [conversationId, refreshMessages]);
 
   useEffect(() => {
     scrollToBottom();
@@ -72,10 +103,23 @@ const ChatWindow = ({ conversationId }) => {
         receiverId
       }));
       setNewMessage('');
+      
+      // Immediately refresh messages after sending
+      setTimeout(() => {
+        refreshMessages();
+      }, 500); // Small delay to ensure backend has processed the message
+      
     } catch (error) {
       console.error('Failed to send message:', error);
     } finally {
       setSending(false);
+    }
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage(e);
     }
   };
 
@@ -119,6 +163,18 @@ const ChatWindow = ({ conversationId }) => {
 
   return (
     <div className="chat-window">
+      {/* Real-time status indicator */}
+      <div className="chat-header">
+        <div className="real-time-status">
+          <div className={`status-indicator ${isPolling && isWindowActive ? 'active' : 'inactive'}`}>
+            <div className="status-dot"></div>
+            <span className="status-text">
+              {isPolling && isWindowActive ? 'Live' : 'Offline'}
+            </span>
+          </div>
+        </div>
+      </div>
+
       <div className="chat-messages">
         {conversationMessages.length > 0 ? (
           conversationMessages.map((message) => (
@@ -159,7 +215,8 @@ const ChatWindow = ({ conversationId }) => {
             type="text"
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="Type a message..."
+            onKeyDown={handleKeyPress}
+            placeholder="Type a message... (Enter to send)"
             className="message-input"
             disabled={sending}
             maxLength={500}

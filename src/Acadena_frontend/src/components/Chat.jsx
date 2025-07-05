@@ -7,7 +7,7 @@ import { setActiveConversation } from '../redux/reducers/chatReducer';
 import ConversationList from './ConversationList';
 import ChatWindow from './ChatWindow';
 import NewConversation from './NewConversation';
-import { useAuth } from '../hooks';
+import { useAuth, useRealTimeConversations, useMessageNotifications } from '../hooks';
 import './assets/styles/chat.css';
 
 const Chat = () => {
@@ -15,6 +15,12 @@ const Chat = () => {
   const { user } = useAuth();
   const { conversations, activeConversation, loading, unreadCount } = useSelector(state => state.chat);
   const [showNewConversation, setShowNewConversation] = useState(false);
+  
+  // Enable real-time conversation updates
+  useRealTimeConversations(true);
+  
+  // Enable message notifications
+  useMessageNotifications(activeConversation);
   
   useEffect(() => {
     dispatch(fetchConversations());

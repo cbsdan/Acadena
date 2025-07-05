@@ -93,19 +93,6 @@ const NewConversation = ({ onCancel, onConversationCreated }) => {
       <div className="new-conversation-header">
         <h3>Start New Conversation</h3>
         <div style={{ display: 'flex', gap: '10px' }}>
-          <button 
-            type="button" 
-            onClick={handleDebug}
-            style={{ 
-              padding: '5px 10px', 
-              background: '#f0f0f0', 
-              border: '1px solid #ccc',
-              borderRadius: '4px',
-              fontSize: '12px'
-            }}
-          >
-            Debug
-          </button>
           <button className="close-btn" onClick={onCancel}>
             <svg viewBox="0 0 24 24" fill="none">
               <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>

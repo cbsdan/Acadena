@@ -1,14 +1,15 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { fetchConversations, fetchMessages, sendMessage, fetchChatRecipients } from '../actions/chatAction';
+import { fetchConversations, fetchConversationsBackground, fetchMessages, sendMessage, fetchChatRecipients } from '../actions/chatAction';
 
 const initialState = {
   conversations: [],
   messages: {}, // { conversationId: [messages] }
   activeConversation: null,
   recipients: [], // Available people to chat with
-  loading: false,
+  loading: false, // For initial loads only
   error: null,
   unreadCount: 0,
+  isInitialLoad: true, // Track if this is the first load
 };
 
 const chatSlice = createSlice({
@@ -36,12 +37,16 @@ const chatSlice = createSlice({
     builder
       // Fetch conversations
       .addCase(fetchConversations.pending, (state) => {
-        state.loading = true;
+        // Only show loading for initial load
+        if (state.isInitialLoad) {
+          state.loading = true;
+        }
         state.error = null;
       })
       .addCase(fetchConversations.fulfilled, (state, action) => {
         state.conversations = action.payload;
         state.loading = false;
+        state.isInitialLoad = false; // After first successful load
         // Calculate total unread count - convert BigInt values to numbers
         state.unreadCount = action.payload.reduce((total, conv) => 
           total + Number(conv.unreadCount?.student || 0) + Number(conv.unreadCount?.admin || 0), 0
@@ -95,6 +100,20 @@ const chatSlice = createSlice({
         console.log('fetchChatRecipients rejected with:', action.payload);
         state.loading = false;
         state.error = action.payload;
+      })
+      // Background fetch conversations (for real-time updates - silent, no loading indicators)
+      .addCase(fetchConversationsBackground.pending, (state) => {
+        // No loading indicators for background updates
+      })
+      .addCase(fetchConversationsBackground.fulfilled, (state, action) => {
+        state.conversations = action.payload;
+        // Calculate total unread count - convert BigInt values to numbers
+        state.unreadCount = action.payload.reduce((total, conv) => 
+          total + Number(conv.unreadCount?.student || 0) + Number(conv.unreadCount?.admin || 0), 0
+        );
+      })
+      .addCase(fetchConversationsBackground.rejected, (state, action) => {
+        // Silent failure for background updates - don't disrupt UI
       });
   },
 });
