@@ -180,35 +180,61 @@ module Invitations {
       };
     };
 
-    public func getMyInvitationCodes() : Result.Result<[{ code : Text; studentName : Text; studentId : StudentId; createdDate : Int; expiryDate : Int; isUsed : Bool; usedDate : ?Int }], Error> {
-      // TODO: Implement proper authentication when msg.caller is available
-      // For now, bypass authentication to allow testing
-      let _caller = Principal.fromText("2vxsx-fae");
+    public func getMyInvitationCodes(caller: Principal) : Result.Result<[{ code : Text; studentName : Text; studentId : StudentId; institutionId : InstitutionId; createdDate : Int; expiryDate : Int; isUsed : Bool; usedDate : ?Int }], Error> {
+      // Get user ID from principal
+      switch (principalToUser.get(caller)) {
+        case null { return #err(#Unauthorized) };
+        case (?userId) {
+          // Get user info to check role
+          switch (users.get(userId)) {
+            case null { return #err(#NotFound) };
+            case (?user) {
+              let invitationsArray = Iter.toArray(invitationCodes.entries());
+              
+              // Filter invitations based on user role
+              let filteredInvitations = switch (user.role) {
+                case (#InstitutionAdmin(institutionId)) {
+                  // Institution admins can see all codes for their institution
+                  Array.filter<(Text, InvitationCode)>(
+                    invitationsArray,
+                    func((_, invitation)) = invitation.institutionId == institutionId
+                  );
+                };
+                case (_) {
+                  // Other users only see codes they created
+                  Array.filter<(Text, InvitationCode)>(
+                    invitationsArray,
+                    func((_, invitation)) = invitation.createdBy == userId
+                  );
+                };
+              };
 
-      // For now, return all invitation codes since we can't identify the user
-      let invitationsArray = Iter.toArray(invitationCodes.entries());
+              let results = Array.map<(Text, InvitationCode), { code : Text; studentName : Text; studentId : StudentId; institutionId : InstitutionId; createdDate : Int; expiryDate : Int; isUsed : Bool; usedDate : ?Int }>(
+                filteredInvitations,
+                func((code, invitation)) {
+                  let studentName = switch (students.get(invitation.studentId)) {
+                    case (?student) { student.firstName # " " # student.lastName };
+                    case null { "Unknown Student" };
+                  };
 
-      let results = Array.map<(Text, InvitationCode), { code : Text; studentName : Text; studentId : StudentId; createdDate : Int; expiryDate : Int; isUsed : Bool; usedDate : ?Int }>(
-        invitationsArray,
-        func((code, invitation)) {
-          let studentName = switch (students.get(invitation.studentId)) {
-            case (?student) { student.firstName # " " # student.lastName };
-            case null { "Unknown Student" };
+                  {
+                    code = code;
+                    studentName = studentName;
+                    studentId = invitation.studentId;
+                    institutionId = invitation.institutionId;
+                    createdDate = invitation.createdDate;
+                    expiryDate = invitation.expiryDate;
+                    isUsed = invitation.isUsed;
+                    usedDate = invitation.usedDate;
+                  };
+                },
+              );
+
+              #ok(results);
+            };
           };
-
-          {
-            code = code;
-            studentName = studentName;
-            studentId = invitation.studentId;
-            createdDate = invitation.createdDate;
-            expiryDate = invitation.expiryDate;
-            isUsed = invitation.isUsed;
-            usedDate = invitation.usedDate;
-          };
-        },
-      );
-
-      #ok(results);
+        };
+      };
     };
   };
 };

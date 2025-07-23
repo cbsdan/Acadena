@@ -223,6 +223,8 @@ actor Acadena {
     incrementStudentId,
     registerUserForStudent,
     createInvitationCodeImpl,
+    principalToUser,
+    users,
   );
 
   private let documentService = Documents.DocumentService(
@@ -234,6 +236,8 @@ actor Acadena {
     incrementDocumentId,
     getNextTransactionId,
     incrementTransactionId,
+    principalToUser,
+    users,
   );
 
   private let utilService = Utils.UtilService(
@@ -427,8 +431,8 @@ actor Acadena {
     );
   };
 
-  public func getMyStudentInfo() : async Result.Result<Student, Error> {
-    await studentService.getMyStudentInfo();
+  public shared (msg) func getMyStudentInfo() : async Result.Result<Student, Error> {
+    await studentService.getMyStudentInfo(msg.caller);
   };
 
   // Document Management Functions
@@ -460,8 +464,8 @@ actor Acadena {
     documentService.getDocument(documentId);
   };
 
-  public func getMyDocuments() : async Result.Result<[Document], Error> {
-    await documentService.getMyDocuments();
+  public shared (msg) func getMyDocuments() : async Result.Result<[Document], Error> {
+    await documentService.getMyDocuments(msg.caller);
   };
 
   public shared ({ caller }) func getDocumentsByStudent(studentId: StudentId) : async Result.Result<[Document], Error> {
@@ -482,8 +486,8 @@ actor Acadena {
     invitationService.getInvitationCodeInfo(code);
   };
 
-  public func getMyInvitationCodes() : async Result.Result<[{ code : Text; studentName : Text; studentId : StudentId; createdDate : Int; expiryDate : Int; isUsed : Bool; usedDate : ?Int }], Error> {
-    switch (invitationService.getMyInvitationCodes()) {
+  public shared (msg) func getMyInvitationCodes() : async Result.Result<[{ code : Text; studentName : Text; studentId : StudentId; institutionId : InstitutionId; createdDate : Int; expiryDate : Int; isUsed : Bool; usedDate : ?Int }], Error> {
+    switch (invitationService.getMyInvitationCodes(msg.caller)) {
       case (#ok(codes)) { #ok(codes) };
       case (#err(error)) { #err(error) };
     };

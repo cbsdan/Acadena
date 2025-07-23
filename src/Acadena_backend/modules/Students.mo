@@ -25,7 +25,9 @@ module Students {
     nextStudentId: () -> Nat,
     incrementStudentId: () -> (),
     registerUser: (Principal, Text, UserRole) -> async Result.Result<User, Error>,
-    generateInvitationCode: (StudentId, InstitutionId, UserId) -> Result.Result<Text, Error>
+    generateInvitationCode: (StudentId, InstitutionId, UserId) -> Result.Result<Text, Error>,
+    principalToUser: Map.HashMap<Principal, UserId>,
+    users: Map.HashMap<UserId, User>
   ) {
     
     public func registerStudentWithUser(
@@ -38,9 +40,6 @@ module Students {
       program: Text,
       yearLevel: Nat
     ) : async Result.Result<(Student, User), Error> {
-      // TODO: Implement proper authentication when msg.caller is available
-      // For now, bypass authentication to allow testing
-      // let _caller = Principal.fromText("2vxsx-fae");
       
       // Validate institution exists
       switch (institutions.get(institutionId)) {
@@ -191,10 +190,30 @@ module Students {
       #ok(filteredStudents)
     };
     
-    public func getMyStudentInfo() : async Result.Result<Student, Error> {
-      // TODO: Implement proper authentication when msg.caller is available
-      // For now, return a default error since we can't identify the student
-      #err(#Unauthorized)
+    public func getMyStudentInfo(caller: Principal) : async Result.Result<Student, Error> {
+      // Get user ID from principal
+      switch (principalToUser.get(caller)) {
+        case null { return #err(#Unauthorized) };
+        case (?userId) {
+          // Get user info
+          switch (users.get(userId)) {
+            case null { return #err(#NotFound) };
+            case (?user) {
+              // Check if user is a student
+              switch (user.role) {
+                case (#Student(studentId)) {
+                  // Get student info
+                  switch (students.get(studentId)) {
+                    case null { return #err(#NotFound) };
+                    case (?student) { return #ok(student) };
+                  };
+                };
+                case (_) { return #err(#Unauthorized) };
+              };
+            };
+          };
+        };
+      };
     };
     
     // Fetch student info by userId

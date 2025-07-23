@@ -44,7 +44,7 @@ import Principal "mo:base/Principal";
 import Types "./Types";
 import Blob "mo:base/Blob";
 import Nat32 "mo:base/Nat32";
-import Hash "mo:base/Hash"; // If you want to hash for token
+import _Hash "mo:base/Hash"; // If you want to hash for token
 import Debug "mo:base/Debug";
 import Bool "mo:base/Bool";
 
@@ -61,6 +61,8 @@ module Documents {
   public type TransactionType = Types.TransactionType;
   public type Error = Types.Error;
   public type AccessToken = Types.AccessToken;
+  public type UserId = Types.UserId;
+  public type User = Types.User;
 
   // Temporary storage for in-progress uploads
   type UploadSession = {
@@ -79,11 +81,13 @@ module Documents {
     documents : Map.HashMap<DocumentId, Document>,
     students : Map.HashMap<StudentId, Student>,
     institutions : Map.HashMap<InstitutionId, Institution>,
-    transactions : Map.HashMap<Text, Transaction>,
+    _transactions : Map.HashMap<Text, Transaction>,
     nextDocumentId : () -> Nat,
     incrementDocumentId : () -> (),
-    nextTransactionId : () -> Nat,
-    incrementTransactionId : () -> (),
+    _nextTransactionId : () -> Nat,
+    _incrementTransactionId : () -> (),
+    principalToUser : Map.HashMap<Principal, UserId>,
+    users : Map.HashMap<UserId, User>
   ) {
     let uploadSessions = Map.HashMap<Text, UploadSession>(10, Text.equal, Text.hash);
 
@@ -216,8 +220,7 @@ module Documents {
       content : Text,
     ) : async Result.Result<Document, Error> {
 
-      // TODO: Implement proper authentication when msg.caller is available
-      // For now, bypass authentication to allow testing
+      // Use anonymous principal for this function since it's not user-facing
       let _caller = Principal.fromText("2vxsx-fae");
 
       // Validate student and institution exist
@@ -289,13 +292,30 @@ module Documents {
       };
     };
 
-    public func getMyDocuments() : async Result.Result<[Document], Error> {
-      // TODO: Implement proper authentication when msg.caller is available
-      // For now, bypass authentication to allow testing
-      let _caller = Principal.fromText("2vxsx-fae");
-
-      // For now, return empty array since we can't identify the user
-      #ok([]);
+    public func getMyDocuments(caller: Principal) : async Result.Result<[Document], Error> {
+      // Get user ID from principal
+      switch (principalToUser.get(caller)) {
+        case null { return #err(#Unauthorized) };
+        case (?userId) {
+          // Get user info
+          switch (users.get(userId)) {
+            case null { return #err(#NotFound) };
+            case (?user) {
+              // Check if user is a student
+              switch (user.role) {
+                case (#Student(studentId)) {
+                  // Get documents for this student
+                  let documentsArray = Iter.toArray(documents.entries());
+                  let allDocuments = Array.map<(DocumentId, Document), Document>(documentsArray, func((_, doc)) = doc);
+                  let studentDocuments = Array.filter<Document>(allDocuments, func(document) = document.studentId == studentId);
+                  return #ok(studentDocuments);
+                };
+                case (_) { return #err(#Unauthorized) };
+              };
+            };
+          };
+        };
+      };
     };
 
    public func getDocumentsByStudentInt(studentId: StudentId, caller: Principal) : async Result.Result<[Document], Error> {

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Acadena_backend } from 'declarations/Acadena_backend';
+import { internetIdentityService } from '../services/InternetIdentityService';
 
 export const useData = (user, isAuthenticated) => {
   const [institutions, setInstitutions] = useState([]);
@@ -11,8 +11,11 @@ export const useData = (user, isAuthenticated) => {
 
   const loadSystemStatus = async () => {
     try {
-      const status = await Acadena_backend.getSystemStatus();
-      setSystemStatus(status);
+      const actor = internetIdentityService.getActor();
+      if (actor) {
+        const status = await actor.getSystemStatus();
+        setSystemStatus(status);
+      }
     } catch (error) {
       console.error('Error loading system status:', error);
     }
@@ -20,8 +23,11 @@ export const useData = (user, isAuthenticated) => {
 
   const loadInstitutions = async () => {
     try {
-      const institutionsList = await Acadena_backend.getAllInstitutions();
-      setInstitutions(institutionsList);
+      const actor = internetIdentityService.getActor();
+      if (actor) {
+        const institutionsList = await actor.getAllInstitutions();
+        setInstitutions(institutionsList);
+      }
     } catch (error) {
       console.error('Error loading institutions:', error);
     }
@@ -31,12 +37,15 @@ export const useData = (user, isAuthenticated) => {
     if (!user || !user.role.InstitutionAdmin) return;
     
     try {
-      const result = await Acadena_backend.getStudentsByInstitution(user.role.InstitutionAdmin);
-      if ('ok' in result) {
-        setStudents(result.ok);
-      } else if ('err' in result) {
-        // Optionally, handle backend error here (e.g., show toast)
-        setStudents([]);
+      const actor = internetIdentityService.getActor();
+      if (actor) {
+        const result = await actor.getStudentsByInstitution(user.role.InstitutionAdmin);
+        if ('ok' in result) {
+          setStudents(result.ok);
+        } else if ('err' in result) {
+          // Optionally, handle backend error here (e.g., show toast)
+          setStudents([]);
+        }
       }
     } catch (error) {
       setStudents([]);
@@ -46,9 +55,12 @@ export const useData = (user, isAuthenticated) => {
 
   const loadMyDocuments = async () => {
     try {
-      const result = await Acadena_backend.getMyDocuments();
-      if ('ok' in result) {
-        setDocuments(result.ok);
+      const actor = internetIdentityService.getActor();
+      if (actor) {
+        const result = await actor.getMyDocuments();
+        if ('ok' in result) {
+          setDocuments(result.ok);
+        }
       }
     } catch (error) {
       console.error('Error loading documents:', error);
@@ -58,14 +70,19 @@ export const useData = (user, isAuthenticated) => {
   const loadMyInvitationCodes = async () => {
     if (!user || !user.role.InstitutionAdmin) return;
     try {
-      const result = await Acadena_backend.getMyInvitationCodes();
-      if ('ok' in result) {
-        // Only show codes created by this institution
-        const filtered = result.ok.filter(code => code.institutionId === user.role.InstitutionAdmin);
-        setMyInvitationCodes(filtered);
+      const actor = internetIdentityService.getActor();
+      if (actor) {
+        const result = await actor.getMyInvitationCodes();
+        if ('ok' in result) {
+          setMyInvitationCodes(result.ok);
+        } else if ('err' in result) {
+          console.error('Error loading invitation codes:', result.err);
+          setMyInvitationCodes([]);
+        }
       }
     } catch (error) {
       console.error('Error loading invitation codes:', error);
+      setMyInvitationCodes([]);
     }
   };
 
@@ -73,10 +90,13 @@ export const useData = (user, isAuthenticated) => {
   const loadIncomingTransferRequests = async () => {
     if (!user || !user.role.InstitutionAdmin) return;
     try {
-      const requests = await Acadena_backend.getTransferRequestsForInstitution();
-      // Only show incoming (to this institution, but not created by this institution)
-      const filtered = requests.filter(req => req.toInstitutionId === user.role.InstitutionAdmin && req.fromInstitutionId !== user.role.InstitutionAdmin);
-      setIncomingTransferRequests(filtered);
+      const actor = internetIdentityService.getActor();
+      if (actor) {
+        const requests = await actor.getTransferRequestsForInstitution();
+        // Only show incoming (to this institution, but not created by this institution)
+        const filtered = requests.filter(req => req.toInstitutionId === user.role.InstitutionAdmin && req.fromInstitutionId !== user.role.InstitutionAdmin);
+        setIncomingTransferRequests(filtered);
+      }
     } catch (error) {
       setIncomingTransferRequests([]);
       console.error('Error loading transfer requests:', error);
