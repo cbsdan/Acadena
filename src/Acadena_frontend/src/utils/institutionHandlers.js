@@ -32,7 +32,7 @@ export const institutionHandlers = {
       );
 
       if (missingFields.length > 0) {
-        alert(`Please fill in all required fields: ${missingFields.join(', ')}`);
+        showErrorToast(`Please fill in all required fields: ${missingFields.join(', ')}`);
         setLoading(false);
         return;
       }
@@ -82,12 +82,12 @@ export const institutionHandlers = {
         );
       } else {
         console.error('❌ Failed to create Internet Identity:', result.error);
-        alert('Failed to create Internet Identity: ' + result.error);
+        showErrorToast('Failed to create Internet Identity: ' + result.error);
         setLoading(false);
       }
     } catch (error) {
       console.error('❌ Error in institution registration flow:', error);
-      alert('Error during registration: ' + error.message);
+      showErrorToast('Error during registration: ' + error.message);
       setLoading(false);
     }
   },
@@ -122,7 +122,7 @@ export const institutionHandlers = {
       }
     } catch (error) {
       console.error('❌ Error handling return from II:', error);
-      alert('Error completing registration: ' + error.message);
+      showErrorToast('Error completing registration: ' + error.message);
     }
   }
 };
@@ -170,12 +170,12 @@ async function submitInstitutionRegistration(
 
       internetIdentityRegistrationService.clearPendingRegistration();
 
-      alert(
-        `Institution and admin account created successfully!\n\n` +
-        `Institution: ${formData.name}\n` +
-        `Admin: ${formData.adminEmail}\n\n` +
-        `You can now manage students and documents for your institution.`
-      );
+      // Show success toast
+      showSuccessToast(`Institution "${formData.name}" registered successfully! Redirecting to dashboard...`);
+
+      // Reload and redirect to dashboard
+      window.location.href = '/app';
+      window.location.reload();
 
       // Clear form
       setInstitutionWithAdminForm({
@@ -203,12 +203,51 @@ async function submitInstitutionRegistration(
       setCurrentView('dashboard');
     } else {
       console.error('❌ Institution registration failed:', result.err);
-      alert('Error creating institution: ' + JSON.stringify(result.err));
+      showErrorToast('Error creating institution: ' + JSON.stringify(result.err));
     }
   } catch (error) {
     console.error('❌ Error submitting institution registration:', error);
-    alert('Error creating institution: ' + error.message);
+    showErrorToast('Error creating institution: ' + error.message);
   } finally {
     setLoading(false);
   }
+}
+
+// Simple toast notification function
+function showSuccessToast(message) {
+  const toast = document.createElement('div');
+  toast.style.cssText = `
+    position: fixed; top: 20px; right: 20px; z-index: 10000;
+    background: #10b981; color: white; padding: 16px 24px;
+    border-radius: 8px; font-family: system-ui; font-size: 14px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-width: 400px;
+    animation: slideIn 0.3s ease;
+  `;
+  toast.textContent = message;
+  
+  const style = document.createElement('style');
+  style.textContent = '@keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }';
+  document.head.appendChild(style);
+  
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
+function showErrorToast(message) {
+  const toast = document.createElement('div');
+  toast.style.cssText = `
+    position: fixed; top: 20px; right: 20px; z-index: 10000;
+    background: #ef4444; color: white; padding: 16px 24px;
+    border-radius: 8px; font-family: system-ui; font-size: 14px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-width: 400px;
+    animation: slideIn 0.3s ease;
+  `;
+  toast.textContent = message;
+  
+  const style = document.createElement('style');
+  style.textContent = '@keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }';
+  document.head.appendChild(style);
+  
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 4000);
 }
