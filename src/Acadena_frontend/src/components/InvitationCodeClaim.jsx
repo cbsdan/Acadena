@@ -26,7 +26,7 @@ const InvitationCodeClaim = ({
 
         <div className="auth-content">
           <form onSubmit={handleInvitationCodeSubmit} className="invitation-form">
-            <div className="form-section">
+            <div>
               <div className="form-group">
                 <label htmlFor="invitationCode" className="form-label">Invitation Code *</label>
                 <div className="input-container">
