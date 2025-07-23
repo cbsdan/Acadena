@@ -210,7 +210,7 @@ const ChatWindow = ({ conversationId }) => {
       </div>
 
       <form onSubmit={handleSendMessage} className="message-input-form">
-        <div className="message-input-container">
+        <div className="">
           <input
             type="text"
             value={newMessage}
