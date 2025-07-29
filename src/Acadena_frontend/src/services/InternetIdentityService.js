@@ -68,6 +68,8 @@ class InternetIdentityService {
           ? `http://${process.env.CANISTER_ID_INTERNET_IDENTITY || 'uzt4z-lp777-77774-qaabq-cai'}.localhost:4943`
           : 'https://identity.ic0.app',
         maxTimeToLive: BigInt(7 * 24 * 60 * 60 * 1000 * 1000 * 1000), // 7 days
+        windowOpenerFeatures: 'toolbar=0,location=0,menubar=0,width=500,height=500,left=' + 
+          (window.screen.width / 2 - 250) + ',top=' + (window.screen.height / 2 - 250),
         onSuccess: async () => {
           this.identity = this.authClient.getIdentity();
           this.actor = await this.createAuthenticatedActor();

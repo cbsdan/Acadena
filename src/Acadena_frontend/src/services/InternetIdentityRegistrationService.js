@@ -61,6 +61,8 @@ class InternetIdentityRegistrationService {
                         ? `http://${process.env.CANISTER_ID_INTERNET_IDENTITY || 'rdmx6-jaaaa-aaaaa-aaadq-cai'}.localhost:4943`
                         : 'https://identity.ic0.app',
                     maxTimeToLive: BigInt(7 * 24 * 60 * 60 * 1000 * 1000 * 1000), // 7 days
+                    windowOpenerFeatures: 'toolbar=0,location=0,menubar=0,width=500,height=500,left=' + 
+                        (window.screen.width / 2 - 250) + ',top=' + (window.screen.height / 2 - 250),
                     onSuccess: async () => {
                         const identity = authClient.getIdentity();
                         const principal = identity.getPrincipal().toText();
