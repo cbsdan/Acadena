@@ -147,16 +147,30 @@ return (
                 </svg>
                 Year Level *
               </label>
-              <input
-                type="number"
+              <select
                 id="yearLevel"
-                min="1"
-                max="10"
-                placeholder="1-10"
                 value={studentForm.yearLevel}
                 onChange={(e) => setStudentForm({...studentForm, yearLevel: e.target.value})}
                 required
-              />
+              >
+                <option value="">Select Year Level</option>
+                <option value="1">1st Year</option>
+                <option value="2">2nd Year</option>
+                <option value="3">3rd Year</option>
+                <option value="4">4th Year</option>
+                <option value="5">5th Year</option>
+                <option value="custom">Other (Specify)</option>
+              </select>
+              {studentForm.yearLevel === 'custom' && (
+                <input
+                  type="text"
+                  placeholder="Specify year level"
+                  value={studentForm.customYearLevel || ''}
+                  onChange={(e) => setStudentForm({...studentForm, customYearLevel: e.target.value})}
+                  style={{ marginTop: '8px' }}
+                  required
+                />
+              )}
             </div>
           </div>
 
@@ -170,14 +184,80 @@ return (
               </svg>
               Academic Program *
             </label>
-            <input
-              type="text"
+            <select
               id="program"
-              placeholder="Enter program/course name"
               value={studentForm.program}
               onChange={(e) => setStudentForm({...studentForm, program: e.target.value})}
               required
-            />
+            >
+              <option value="">Select Academic Program</option>
+              <optgroup label="Computer Science & IT">
+                <option value="Computer Science">Computer Science</option>
+                <option value="Information Technology">Information Technology</option>
+                <option value="Software Engineering">Software Engineering</option>
+                <option value="Cybersecurity">Cybersecurity</option>
+                <option value="Data Science">Data Science</option>
+                <option value="Computer Engineering">Computer Engineering</option>
+              </optgroup>
+              <optgroup label="Engineering">
+                <option value="Mechanical Engineering">Mechanical Engineering</option>
+                <option value="Electrical Engineering">Electrical Engineering</option>
+                <option value="Civil Engineering">Civil Engineering</option>
+                <option value="Chemical Engineering">Chemical Engineering</option>
+                <option value="Industrial Engineering">Industrial Engineering</option>
+                <option value="Aerospace Engineering">Aerospace Engineering</option>
+              </optgroup>
+              <optgroup label="Business & Management">
+                <option value="Business Administration">Business Administration</option>
+                <option value="Accounting">Accounting</option>
+                <option value="Finance">Finance</option>
+                <option value="Marketing">Marketing</option>
+                <option value="Human Resource Management">Human Resource Management</option>
+                <option value="Economics">Economics</option>
+              </optgroup>
+              <optgroup label="Healthcare">
+                <option value="Nursing">Nursing</option>
+                <option value="Medicine">Medicine</option>
+                <option value="Pharmacy">Pharmacy</option>
+                <option value="Physical Therapy">Physical Therapy</option>
+                <option value="Medical Technology">Medical Technology</option>
+              </optgroup>
+              <optgroup label="Liberal Arts & Sciences">
+                <option value="Psychology">Psychology</option>
+                <option value="English Literature">English Literature</option>
+                <option value="Mathematics">Mathematics</option>
+                <option value="Biology">Biology</option>
+                <option value="Chemistry">Chemistry</option>
+                <option value="Physics">Physics</option>
+                <option value="History">History</option>
+                <option value="Political Science">Political Science</option>
+              </optgroup>
+              <optgroup label="Arts & Design">
+                <option value="Fine Arts">Fine Arts</option>
+                <option value="Graphic Design">Graphic Design</option>
+                <option value="Architecture">Architecture</option>
+                <option value="Interior Design">Interior Design</option>
+                <option value="Music">Music</option>
+                <option value="Theater Arts">Theater Arts</option>
+              </optgroup>
+              <optgroup label="Education">
+                <option value="Elementary Education">Elementary Education</option>
+                <option value="Secondary Education">Secondary Education</option>
+                <option value="Special Education">Special Education</option>
+                <option value="Physical Education">Physical Education</option>
+              </optgroup>
+              <option value="custom">Other (Specify)</option>
+            </select>
+            {studentForm.program === 'custom' && (
+              <input
+                type="text"
+                placeholder="Specify your academic program"
+                value={studentForm.customProgram || ''}
+                onChange={(e) => setStudentForm({...studentForm, customProgram: e.target.value})}
+                style={{ marginTop: '8px' }}
+                required
+              />
+            )}
           </div>
 
           <button type="submit" disabled={loading} className="submit-btn">
