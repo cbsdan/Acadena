@@ -87,7 +87,7 @@ module Documents {
     _nextTransactionId : () -> Nat,
     _incrementTransactionId : () -> (),
     principalToUser : Map.HashMap<Principal, UserId>,
-    users : Map.HashMap<UserId, User>
+    users : Map.HashMap<UserId, User>,
   ) {
     let uploadSessions = Map.HashMap<Text, UploadSession>(10, Text.equal, Text.hash);
 
@@ -210,8 +210,6 @@ module Documents {
       };
     };
 
-    
-
     public func issueDocument(
       studentId : StudentId,
       issuingInstitutionId : InstitutionId,
@@ -292,7 +290,7 @@ module Documents {
       };
     };
 
-    public func getMyDocuments(caller: Principal) : async Result.Result<[Document], Error> {
+    public func getMyDocuments(caller : Principal) : async Result.Result<[Document], Error> {
       // Get user ID from principal
       switch (principalToUser.get(caller)) {
         case null { return #err(#Unauthorized) };
@@ -318,7 +316,7 @@ module Documents {
       };
     };
 
-   public func getDocumentsByStudentInt(studentId: StudentId, caller: Principal) : async Result.Result<[Document], Error> {
+    public func getDocumentsByStudentInt(studentId : StudentId, caller : Principal) : async Result.Result<[Document], Error> {
       // Use provided caller
       let _caller = caller;
 

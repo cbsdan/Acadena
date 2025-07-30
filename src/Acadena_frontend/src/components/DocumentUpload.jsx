@@ -17,6 +17,8 @@ const DocumentUpload = ({
     title: ''
   });
 
+const [imagePreview, setImagePreview] = React.useState(null);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const student = students.find(s => s.id === uploadForm.studentId);
@@ -147,7 +149,21 @@ const DocumentUpload = ({
                   </div>
                 </div>
               </div>
-
+    {uploadForm.file && uploadForm.file.type && uploadForm.file.type.startsWith('image/') && (
+  <img
+    src={URL.createObjectURL(uploadForm.file)}
+    alt="Preview"
+    style={{
+      maxWidth: 120,
+      maxHeight: 120,
+      borderRadius: 6,
+      border: '1px solid #eee',
+      marginTop: 8,
+      cursor: 'pointer'
+    }}
+    onClick={() => setImagePreview(URL.createObjectURL(uploadForm.file))}
+  />
+)}
               {/* Submit Button */}
               <button type="submit" className="submit-button" disabled={loading}>
                 {loading ? (
@@ -246,6 +262,50 @@ const DocumentUpload = ({
           </div>
         </div>
       )}
+      {imagePreview && (
+  <div
+    className="modal-overlay"
+    style={{
+      position: 'fixed',
+      top: 0, left: 0, right: 0, bottom: 0,
+      background: 'rgba(0,0,0,0.7)',
+      zIndex: 9999,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }}
+    onClick={() => setImagePreview(null)}
+  >
+    <img
+      src={imagePreview}
+      alt="Full Preview"
+      style={{
+        maxWidth: '90vw',
+        maxHeight: '90vh',
+        borderRadius: 10,
+        boxShadow: '0 4px 32px rgba(0,0,0,0.3)',
+        background: '#fff'
+      }}
+      onClick={e => e.stopPropagation()}
+    />
+    <button
+      style={{
+        position: 'absolute',
+        top: 30,
+        right: 40,
+        background: 'transparent',
+        border: 'none',
+        color: '#fff',
+        fontSize: 36,
+        cursor: 'pointer'
+      }}
+      onClick={() => setImagePreview(null)}
+      aria-label="Close"
+    >
+      &times;
+    </button>
+  </div>
+)}
     </div>
   );
 };

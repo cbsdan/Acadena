@@ -11,6 +11,8 @@ const Dashboard = ({
   myInvitationCodes 
 }) => {
   const [copiedCode, setCopiedCode] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [previewType, setPreviewType] = useState(null);
 
   // Access student info from Redux store
   const studentInfo = useSelector(state => state.student.student);
@@ -78,6 +80,15 @@ const Dashboard = ({
     } catch (err) {
       console.error('Failed to copy: ', err);
     }
+  };
+ const handlePreviewDocument = (document) => {
+    let fileArr = document.file && document.file[0];
+    if (!fileArr) return;
+    const type = (document.fileType && document.fileType[0]) || 'application/pdf';
+    const blob = new Blob([fileArr], { type });
+    const url = URL.createObjectURL(blob);
+    setPreviewUrl(url);
+    setPreviewType(type);
   };
 
   const getGreeting = () => {
@@ -354,6 +365,18 @@ const Dashboard = ({
                     <div className="card-footer">
                       {/* Removed duplicate download button at the bottom */}
                     </div>
+                        <button
+                  className="preview-btn"
+                  onClick={() => handlePreviewDocument(document)}
+                  title="Preview Document"
+                  style={{marginLeft: 8, background: 'none', border: 'none', cursor: 'pointer'}}
+                >
+                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
+                    <path d="M2 12s4-8 10-8 10 8 10 8-4 8-10 8S2 12 2 12z" stroke="currentColor" strokeWidth="2"/>
+                    <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2"/>
+                  </svg>
+                </button>
                   </div>
                 ))}
               </div>
@@ -503,6 +526,75 @@ const Dashboard = ({
           </div>
         )}
       </div>
+
+       {previewUrl && (
+        <div
+          className="modal-overlay"
+          style={{
+            position: 'fixed',
+            top: 0, left: 0, right: 0, bottom: 0,
+            background: 'rgba(0,0,0,0.7)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+          onClick={() => {
+            URL.revokeObjectURL(previewUrl);
+            setPreviewUrl(null);
+            setPreviewType(null);
+          }}
+        >
+          <div
+            style={{
+              background: '#fff',
+              borderRadius: 10,
+              padding: 16,
+              maxWidth: '90vw',
+              maxHeight: '90vh',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center'
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            {previewType && previewType.startsWith('image/') ? (
+              <img
+                src={previewUrl}
+                alt="Preview"
+                style={{ maxWidth: '80vw', maxHeight: '80vh', borderRadius: 8 }}
+              />
+            ) : previewType === 'application/pdf' ? (
+              <iframe
+                src={previewUrl}
+                title="PDF Preview"
+                style={{ width: '80vw', height: '80vh', border: 'none', borderRadius: 8 }}
+              />
+            ) : (
+              <div>No preview available</div>
+            )}
+            <button
+              style={{
+                marginTop: 16,
+                background: '#ef4444',
+                color: '#fff',
+                border: 'none',
+                borderRadius: 6,
+                padding: '8px 24px',
+                fontSize: 18,
+                cursor: 'pointer'
+              }}
+              onClick={() => {
+                URL.revokeObjectURL(previewUrl);
+                setPreviewUrl(null);
+                setPreviewType(null);
+              }}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

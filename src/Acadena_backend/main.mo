@@ -16,7 +16,7 @@ import Invitations "./modules/Invitations";
 import Utils "./modules/Utils";
 import InstitutionsData "./modules/InstitutionsData";
 import Chat "./modules/Chat";
-
+import Blob "mo:base/Blob";
 // import TransacCreator "modules/TransacCreator";
 
 import TransacCreator "modules/TransacCreator";
@@ -108,17 +108,18 @@ actor Acadena {
 
   private func getNextTransferId() : Nat { nextTransferId };
   private func incrementTransferId() : () { nextTransferId += 1 };
+ 
 
   // Initialize service instances
-     private let transactionService = TransacCreator.TransactionService(
-        transactions,
-        users,
-        principalToUser,
-        documents,
-        accessTokens, // Pass the accessTokens map
-        getNextTransactionId,
-        incrementTransactionId
-      );
+  private let transactionService = TransacCreator.TransactionService(
+    transactions,
+    users,
+    principalToUser,
+    documents,
+    accessTokens, // Pass the accessTokens map
+    getNextTransactionId,
+    incrementTransactionId,
+  );
   private let userService = Users.UserService(
     users,
     principalToUser,
@@ -129,7 +130,7 @@ actor Acadena {
   private let transferService = TransferModule.TransferService(
     transferRequests,
     getNextTransferId,
-    incrementTransferId
+    incrementTransferId,
   );
 
   // Wrapper function for institution service - matches expected signature
@@ -352,6 +353,17 @@ actor Acadena {
     institutionService.getAllInstitutions();
   };
 
+  public query func getDocumentFile(documentId : Text) : async ?Blob {
+    switch (documentService.getDocument(documentId)) {
+      case (#ok(document)) {
+        switch (document.file) {
+          case (?fileBlob) { ?fileBlob };
+          case null { null };
+        };
+      };
+      case (#err(_)) { null };
+    };
+  };
   // Student Management Functions
   public func registerStudentWithUser(
     caller : Principal,
@@ -451,14 +463,13 @@ actor Acadena {
   };
 
   public func getDocumentsWithType(
-      filter : Text,
-      studentNumber : Text
-    ) : async Result.Result<[Document], Error> {
-     
-      Debug.print("Searching documents with filter: " # filter # " for student: " # studentNumber);
-      await transactionService.searchDocumentsByTitle(filter,studentNumber);
-    };
-    
+    filter : Text,
+    studentNumber : Text,
+  ) : async Result.Result<[Document], Error> {
+
+    Debug.print("Searching documents with filter: " # filter # " for student: " # studentNumber);
+    await transactionService.searchDocumentsByTitle(filter, studentNumber);
+  };
 
   public query func getDocument(documentId : DocumentId) : async Result.Result<Document, Error> {
     documentService.getDocument(documentId);
@@ -468,13 +479,13 @@ actor Acadena {
     await documentService.getMyDocuments(msg.caller);
   };
 
-  public shared ({ caller }) func getDocumentsByStudent(studentId: StudentId) : async Result.Result<[Document], Error> {
+  public shared ({ caller }) func getDocumentsByStudent(studentId : StudentId) : async Result.Result<[Document], Error> {
     await documentService.getDocumentsByStudentInt(studentId, caller);
   };
 
   // Query all documents for a student that has access tokens
-  public query func getDocumentsByStudentAccessTokens(studentId: StudentId) : async [Document] {
-    transactionService.getDocumentsByStudentAccessTokens(studentId)
+  public query func getDocumentsByStudentAccessTokens(studentId : StudentId) : async [Document] {
+    transactionService.getDocumentsByStudentAccessTokens(studentId);
   };
 
   // Invitation Code Management Functions
@@ -504,16 +515,16 @@ actor Acadena {
 
   // Access Token Management Function
   public shared func createAccessTokens(
-    docIds: [DocumentId],
-    studentId: StudentId
+    docIds : [DocumentId],
+    studentId : StudentId,
   ) : async Result.Result<[Types.AccessToken], Error> {
     // Call the transactionService's createAccessTokensForDocuments
-    transactionService.createAccessTokensForDocuments(docIds, studentId)
+    transactionService.createAccessTokensForDocuments(docIds, studentId);
   };
-  
+
   // Query student info by userId
-  public query func getStudentByUserId(userId: UserId) : async ?Student {
-    studentService.getStudentByUserId(userId)
+  public query func getStudentByUserId(userId : UserId) : async ?Student {
+    studentService.getStudentByUserId(userId);
   };
 
   // Transfer Management Functions
@@ -521,13 +532,13 @@ actor Acadena {
     studentId : StudentId,
     fromInstitutionId : InstitutionId,
     toInstitutionId : InstitutionId,
-    notes : ?Text
+    notes : ?Text,
   ) : async Types.TransferInstitute {
-    transferService.createTransferRequest(studentId, fromInstitutionId, toInstitutionId, notes)
+    transferService.createTransferRequest(studentId, fromInstitutionId, toInstitutionId, notes);
   };
 
   public query func getTransferRequests() : async [Types.TransferInstitute] {
-    transferService.getAllTransferRequests()
+    transferService.getAllTransferRequests();
   };
 
   public query ({ caller }) func getAllStudents() : async [Student] {
@@ -544,34 +555,34 @@ actor Acadena {
                 switch (result) {
                   case (#ok(students)) students;
                   case (#err(_)) [];
-                }
+                };
               };
               case _ [];
-            }
+            };
           };
           case null [];
-        }
+        };
       };
       case null [];
-    }
+    };
   };
 
   public query ({ caller }) func getTransferRequestsForInstitution() : async [Types.TransferInstitute] {
-    transferService.getTransferRequestsForInstitution(caller, principalToUser, users)
+    transferService.getTransferRequestsForInstitution(caller, principalToUser, users);
   };
 
   // Create a transfer request (called by sending institution admin)
   public shared ({ caller }) func transferStudentToInstitution(studentId : StudentId, toInstitutionId : InstitutionId) : async Result.Result<Types.TransferInstitute, Text> {
-    transferService.transferStudentToInstitution(caller, studentId, toInstitutionId, principalToUser, users)
+    transferService.transferStudentToInstitution(caller, studentId, toInstitutionId, principalToUser, users);
   };
 
   // Accept a transfer request (called by receiving institution admin)
   public shared ({ caller }) func acceptTransferRequest(transferId : Types.TransferId) : async Result.Result<Text, Text> {
-    transferService.acceptTransferRequest(caller, transferId, principalToUser, users, students, documents, transferRequests)
+    transferService.acceptTransferRequest(caller, transferId, principalToUser, users, students, documents, transferRequests);
   };
 
   // Public functions for chat
-  public shared ({ caller }) func sendMessage(content: Text, receiverId: UserId) : async Result.Result<Message, Error> {
+  public shared ({ caller }) func sendMessage(content : Text, receiverId : UserId) : async Result.Result<Message, Error> {
     // Get user info from caller
     let userOpt = principalToUser.get(caller);
     switch (userOpt) {
@@ -582,15 +593,15 @@ actor Acadena {
             // Determine conversation based on sender/receiver roles
             let messageId = "msg_" # Nat.toText(nextMessageId);
             nextMessageId += 1;
-            
+
             // Create a simple conversation ID based on participants
             let conversationId = if (userId < receiverId) {
-              userId # "_" # receiverId
+              userId # "_" # receiverId;
             } else {
-              receiverId # "_" # userId
+              receiverId # "_" # userId;
             };
-            
-            chatManager.sendMessage(messageId, conversationId, userId, receiverId, content, #Text)
+
+            chatManager.sendMessage(messageId, conversationId, userId, receiverId, content, #Text);
           };
           case null { #err(#NotFound) };
         };
@@ -604,28 +615,28 @@ actor Acadena {
     switch (userOpt) {
       case (?userId) {
         let conversations = chatManager.getUserConversations(userId);
-        #ok(conversations)
+        #ok(conversations);
       };
       case null { #err(#Unauthorized) };
     };
   };
 
-  public shared ({ caller }) func getConversationMessages(conversationId: ConversationId) : async Result.Result<[Message], Error> {
+  public shared ({ caller }) func getConversationMessages(conversationId : ConversationId) : async Result.Result<[Message], Error> {
     let userOpt = principalToUser.get(caller);
     switch (userOpt) {
       case (?_userId) {
         let messages = chatManager.getConversationMessages(conversationId);
-        #ok(messages)
+        #ok(messages);
       };
       case null { #err(#Unauthorized) };
     };
   };
 
   // Helper function to get user info for conversations
-  public shared ({ caller = _ }) func getUserForConversation(userId: UserId) : async ?{
-    id: UserId;
-    name: Text;
-    role: UserRole;
+  public shared ({ caller = _ }) func getUserForConversation(userId : UserId) : async ?{
+    id : UserId;
+    name : Text;
+    role : UserRole;
   } {
     // First try to get from users
     switch (users.get(userId)) {
@@ -646,52 +657,44 @@ actor Acadena {
           };
           case (#SystemAdmin) { "System Admin" };
         };
-        
+
         ?{
           id = user.id;
           name = displayName;
           role = user.role;
-        }
+        };
       };
       case null { null };
     };
   };
 
   // Get available chat recipients
-  public shared ({ caller }) func getAvailableChatRecipients() : async Result.Result<[{
-    id: UserId;
-    name: Text;
-    role: Text;
-  }], Error> {
+  public shared ({ caller }) func getAvailableChatRecipients() : async Result.Result<[{ id : UserId; name : Text; role : Text }], Error> {
     let userOpt = principalToUser.get(caller);
     switch (userOpt) {
       case (?userId) {
         let userOpt2 = users.get(userId);
         switch (userOpt2) {
           case (?currentUser) {
-            var recipients: [{id: UserId; name: Text; role: Text}] = [];
-            
+            var recipients : [{ id : UserId; name : Text; role : Text }] = [];
+
             Debug.print("Getting chat recipients for user: " # userId);
-            Debug.print("User role: " # debug_show(currentUser.role));
-            
+            Debug.print("User role: " # debug_show (currentUser.role));
+
             switch (currentUser.role) {
               case (#Student(_studentId)) {
                 // Students can chat with institution admins
                 Debug.print("User is a student, finding institution admins...");
                 let allUsers = Iter.toArray(users.vals());
                 Debug.print("Total users in system: " # Nat.toText(allUsers.size()));
-                
+
                 for (user in allUsers.vals()) {
                   switch (user.role) {
                     case (#InstitutionAdmin(instId)) {
                       switch (institutions.get(instId)) {
                         case (?institution) {
                           Debug.print("Found institution admin: " # user.id # " for institution: " # institution.name);
-                          recipients := Array.append(recipients, [{
-                            id = user.id;
-                            name = institution.name # " Admin";
-                            role = "admin";
-                          }]);
+                          recipients := Array.append(recipients, [{ id = user.id; name = institution.name # " Admin"; role = "admin" }]);
                         };
                         case null {
                           Debug.print("Institution not found for admin: " # user.id);
@@ -706,28 +709,24 @@ actor Acadena {
                 // Institution admins can chat with their students
                 Debug.print("User is an institution admin for: " # institutionId);
                 let institutionStudents = switch (studentService.getStudentsByInstitution(institutionId)) {
-                  case (#ok(students)) { 
+                  case (#ok(students)) {
                     Debug.print("Found " # Nat.toText(students.size()) # " students in institution");
-                    students 
+                    students;
                   };
-                  case (#err(error)) { 
-                    Debug.print("Error getting students: " # debug_show(error));
-                    [] 
+                  case (#err(error)) {
+                    Debug.print("Error getting students: " # debug_show (error));
+                    [];
                   };
                 };
-                
+
                 for (student in institutionStudents.vals()) {
                   Debug.print("Processing student: " # student.firstName # " " # student.lastName);
-                  Debug.print("Student userId: " # debug_show(student.userId));
+                  Debug.print("Student userId: " # debug_show (student.userId));
                   // Only add students that have a userId
                   switch (student.userId) {
                     case (?studentUserId) {
                       Debug.print("Adding student to recipients: " # studentUserId);
-                      recipients := Array.append(recipients, [{
-                        id = studentUserId;
-                        name = student.firstName # " " # student.lastName # " (" # student.studentNumber # ")";
-                        role = "student";
-                      }]);
+                      recipients := Array.append(recipients, [{ id = studentUserId; name = student.firstName # " " # student.lastName # " (" # student.studentNumber # ")"; role = "student" }]);
                     };
                     case null {
                       Debug.print("Student has no userId, skipping: " # student.firstName # " " # student.lastName);
@@ -739,54 +738,57 @@ actor Acadena {
                 Debug.print("User role not supported for chat");
               };
             };
-            
+
             Debug.print("Total recipients found: " # Nat.toText(recipients.size()));
-            #ok(recipients)
+            #ok(recipients);
           };
-          case null { 
+          case null {
             Debug.print("User not found: " # userId);
-            #err(#NotFound) 
+            #err(#NotFound);
           };
         };
       };
-      case null { 
+      case null {
         Debug.print("Principal not mapped to user");
-        #err(#Unauthorized) 
+        #err(#Unauthorized);
       };
     };
   };
 
   // Debug function to check students and their userIds
   public query func debugStudentsWithUserIds() : async [{
-    studentId: StudentId;
-    firstName: Text;
-    lastName: Text;
-    hasUserId: Bool;
-    userId: ?UserId;
+    studentId : StudentId;
+    firstName : Text;
+    lastName : Text;
+    hasUserId : Bool;
+    userId : ?UserId;
   }] {
     let allStudents = Iter.toArray(students.vals());
-    Array.map<Student, {studentId: StudentId; firstName: Text; lastName: Text; hasUserId: Bool; userId: ?UserId}>(
+    Array.map<Student, { studentId : StudentId; firstName : Text; lastName : Text; hasUserId : Bool; userId : ?UserId }>(
       allStudents,
       func(student) {
         {
           studentId = student.id;
           firstName = student.firstName;
           lastName = student.lastName;
-          hasUserId = switch (student.userId) { case (?_) true; case null false };
+          hasUserId = switch (student.userId) {
+            case (?_) true;
+            case null false;
+          };
           userId = student.userId;
-        }
-      }
-    )
+        };
+      },
+    );
   };
 
   // Debug function to check all users and their roles
   public query func debugAllUsers() : async [{
-    userId: UserId;
-    email: Text;
-    role: Text;
+    userId : UserId;
+    email : Text;
+    role : Text;
   }] {
     let allUsers = Iter.toArray(users.vals());
-    Array.map<User, {userId: UserId; email: Text; role: Text}>(
+    Array.map<User, { userId : UserId; email : Text; role : Text }>(
       allUsers,
       func(user) {
         let roleText = switch (user.role) {
@@ -798,8 +800,8 @@ actor Acadena {
           userId = user.id;
           email = user.email;
           role = roleText;
-        }
-      }
-    )
+        };
+      },
+    );
   };
 };
